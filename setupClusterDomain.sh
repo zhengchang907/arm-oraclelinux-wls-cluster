@@ -9,9 +9,10 @@ function echo_stderr ()
 #Function to display usage message
 function usage()
 {
-  echo_stderr "./setupAdminDomain.sh <acceptOTNLicenseAgreement> <otnusername> <otnpassword> <wlsDomainName> <managedServerPrefix> <wlsPassword> <wlsServerName> <index value> <vmNamePrefix>"  
+  echo_stderr "./setupClusterDomain.sh <acceptOTNLicenseAgreement> <otnusername> <otnpassword> <wlsDomainName> <wlsUserName> <wlsPassword> <managedServerPrefix> <index value> <vmNamePrefix>"  
 }
 
+# Download JDK for WLS
 function downloadJDK()
 {
    for in in {1..5}
@@ -29,6 +30,7 @@ function downloadJDK()
    done
 }
 
+#Download WLS 12.2.1.3.0
 function downloadWLS()
 {
   for in in {1..5}
@@ -45,6 +47,8 @@ function downloadWLS()
      fi
   done
 }
+
+# Validate th JDK downloaded checksum
 function validateJDKZipCheckSum()
 {
   jdkZipFile="$1"
@@ -195,7 +199,7 @@ ORACLE_HOME=[INSTALL_PATH]/Oracle/Middleware/Oracle_Home/
 EOF
 }
 
-#Creates weblogic deployment model for admin domain
+#Creates weblogic deployment model for cluster domain admin setup
 function create_admin_model()
 {
     echo "Creating admin domain model"
@@ -225,7 +229,7 @@ topology:
 EOF
 }
 
-#Creates weblogic deployment model for admin domain
+#Creates weblogic deployment model for cluster domain managed server
 function create_managed_model()
 {
     echo "Creating admin domain model"
@@ -256,7 +260,6 @@ EOF
 # This function to create model for sample application deployment 
 function create_app_deploy_model()
 {
-
     echo "Creating deploying applicaton model"
     cat <<EOF >$DOMAIN_PATH/deploy-app.yaml
 domainInfo:
@@ -348,18 +351,16 @@ function create_adminSetup()
     fi
 }
 
-#Function to start admin server
-function start_admin()
+#Function to setup admin boot properties
+function admin_boot_setup()
 {
+ echo "Creating admin boot properties"
  #Create the boot.properties directory
  mkdir -p "$DOMAIN_PATH/$wlsDomainName/servers/admin/security"
  echo "username=$wlsUserName" > "$DOMAIN_PATH/$wlsDomainName/servers/admin/security/boot.properties"
  echo "password=$wlsPassword" >> "$DOMAIN_PATH/$wlsDomainName/servers/admin/security/boot.properties"
  sudo chown -R $username:$groupname $DOMAIN_PATH/$wlsDomainName/servers
- runuser -l oracle -c "export JAVA_HOME=$JDK_PATH/jdk1.8.0_131 ; \"$DOMAIN_PATH/$wlsDomainName/startWebLogic.sh\"  > "$DOMAIN_PATH/$wlsDomainName/admin.out" 2>&1 &"
- sleep 3m
- wait_for_admin
-}
+ }
 
 #This function to wait for admin server 
 function wait_for_admin()
@@ -368,9 +369,10 @@ function wait_for_admin()
 count=1
 export CHECK_URL="http://$wlsAdminURL/weblogic/ready"
 status=`curl --insecure -ILs $CHECK_URL | tac | grep -m1 HTTP/1.1 | awk {'print $2'}`
+echo "Waiting for admin server to start"
 while [[ "$status" != "200" ]]
 do
-  echo "Waiting for admin server to start"
+  echo "."
   count=$((count+1))
   if [ $count -le 30 ];
   then
@@ -386,6 +388,54 @@ do
      break
   fi
 done  
+}
+
+# Create systemctl service for nodemanager
+function create_nodemanager_service()
+{
+ echo "Creating NodeManager service"
+ cat <<EOF >/etc/systemd/system/wls_nodemanager.service
+ [Unit]
+Description=WebLogic nodemanager service
+ 
+[Service]
+Type=simple
+# Note that the following three parameters should be changed to the correct paths
+# on your own system
+WorkingDirectory="$DOMAIN_PATH/$wlsDomainName"
+ExecStart="$DOMAIN_PATH/$wlsDomainName/bin/startNodeManager.sh"
+ExecStop="$DOMAIN_PATH/$wlsDomainName/bin/stopNodeManager.sh"
+User=oracle
+Group=oracle
+KillMode=process
+LimitNOFILE=65535
+ 
+[Install]
+WantedBy=multi-user.target
+EOF
+}
+
+# This function to create adminserver service
+function create_adminserver_service()
+{
+ echo "Creating admin server service"
+ cat <<EOF >/etc/systemd/system/wls_admin.service
+[Unit]
+Description=WebLogic Adminserver service
+ 
+[Service]
+Type=simple
+WorkingDirectory="$DOMAIN_PATH/$wlsDomainName"
+ExecStart="$DOMAIN_PATH/$wlsDomainName/startWebLogic.sh"
+ExecStop="$DOMAIN_PATH/$wlsDomainName/bin/stopWebLogic.sh"
+User=oracle
+Group=oracle
+KillMode=process
+LimitNOFILE=65535
+ 
+[Install]
+WantedBy=multi-user.target
+EOF
 }
 
 #This function to start managed server
@@ -409,13 +459,7 @@ if [[ $? != 0 ]]; then
 fi
 }
 
-#Function to start nodemanager
-function start_nm()
-{
-runuser -l oracle -c "export JAVA_HOME=$JDK_PATH/jdk1.8.0_131 ; \"$DOMAIN_PATH/$wlsDomainName/bin/startNodeManager.sh\" &"
-sleep 3m
-}
-
+# Create managed server setup
 function create_managedSetup(){
     echo "Creating Admin Setup"
     echo "Creating domain path /u01/domains"
@@ -451,22 +495,6 @@ function create_managedSetup(){
          echo "Error : Adding server $wlsServerName failed"
          exit 1
     fi
-}
-
-#Function to deploy application in offline mode
-#Sample shopping cart 
-function deploy_sampleApp()
-{
-    create_app_deploy_model
-	echo "Downloading Sample Application"
-	wget -q $samplApp
-	sudo unzip -o shoppingcart.zip -d $DOMAIN_PATH
-	sudo chown -R $username:$groupname $DOMAIN_PATH/shoppingcart.*
-	runuser -l oracle -c "export JAVA_HOME=$JDK_PATH/jdk1.8.0_131 ;  $DOMAIN_PATH/weblogic-deploy/bin/deployApps.sh -oracle_home $INSTALL_PATH/Oracle/Middleware/Oracle_Home -archive_file $DOMAIN_PATH/shoppingcart.war -domain_home $DOMAIN_PATH/$wlsDomainName -model_file  $DOMAIN_PATH/deploy-app.yaml"
-	if [[ $? != 0 ]]; then
-          echo "Error : Deploying application failed"
-          exit 1
-        fi
 }
 
 #Install Weblogic Server using Silent Installation Templates
@@ -539,8 +567,6 @@ export wlsManagedPort=8001
 export wlsAdminURL=$vmNamePrefix"0:$wlsAdminPort"
 export wlsClusterName="cluster1"
 
-
-echo "Arguments passed: acceptOTNLicenseAgreement=$1, otnusername=$2,otnpassword=$3,wlsDomainName=$4,wlsUserName=$5,wlsPassword=$6,managedServerPrefix=$7,indexValue=$8,vmNamePrefix=$9"
 
 if [ -z "$acceptOTNLicenseAgreement" ];
 then
@@ -620,7 +646,7 @@ echo "Installing zip unzip wget vnc-server rng-tools"
 sudo yum install -y zip unzip wget vnc-server rng-tools
 
 #Setting up rngd utils
-sudo systemctl status rngd
+sudo systemctl enable rngd
 sudo systemctl start rngd
 sudo systemctl status rngd
 
@@ -679,6 +705,7 @@ create_oraUninstallResponseTemplate
 installWLS
 
 echo "Weblogic Server Installation Completed succesfully."
+sudo systemctl enable rngd 
 
 if [ $wlsServerName == "admin" ];
 then
@@ -686,20 +713,30 @@ then
   echo "Creating Admin setup "
   create_adminSetup
   echo "Completed Admin setup"
-  echo "Starting admin server"
-  start_admin
-  echo "Started admin server"
-  echo "Starting nodemanager"
-  start_nm  
-  echo "Started nodemanager"
+  echo "Creating services for Nodemanager and Admin server"
+  create_nodemanager_service
+  admin_boot_setup
+  create_adminserver_service
+  echo "Enabling nodemanager and admin service"
+  sudo systemctl enable wls_nodemanager
+  sudo systemctl enable wls_admin
+  sudo systemctl daemon-reload
+  echo "Starting nodemanager service"
+  sudo systemctl start wls_nodemanager
+  echo "Starting admin server service"
+  sudo systemctl start wls_admin
+  wait_for_admin
 else
   echo "Creating managed server setup"
   create_managedSetup
   echo "Completed managed server setup"
-  start_nm
-  sleep 1m
-  echo "Starting managed server $wlsServerName"
+  echo "Creating services for Nodemanager"
+  create_nodemanager_service
+  echo "Enabling nodemanager service"
+  sudo systemctl enable wls_nodemanager
+  sudo systemctl daemon-reload
+  echo "Starting nodemanager service"
+  sudo systemctl start wls_nodemanager
   start_managed
-  echo "Started managed server $wlsServerName"
 fi  
 cleanup
