@@ -7,7 +7,7 @@
          "metadata":{
             "description":"The base URI where artifacts required by this template are located. When the template is deployed using the accompanying scripts, a private location in the subscription will be used and this value will be automatically generated."
          },
-         "defaultValue":"https://raw.githubusercontent.com/wls-eng/arm-oraclelinux-wls-cluster/master"
+         "defaultValue":"https://raw.githubusercontent.com/wls-eng/arm-oraclelinux-wls-cluster/develop/"
       },
       "adminUsername":{
          "type":"string",
@@ -125,19 +125,19 @@
    },
    "variables":{
       "extensionUrl":"[concat(parameters('_artifactsLocation'), 'scripts/')]",
-      "storageAccountName":"[concat(uniquestring(resourceGroup().id), 'olvm')]",
       "imagePublisher":"Oracle",
       "imageOffer":"Oracle-Linux",
-      "nicName":"vmNIC",
       "vmNamePrefix": "wlsVM",
+      "nicName":"_NIC",	   
+      "storageAccountName":"[concat('storage',uniquestring(resourceGroup().id))]",	   
       "addressPrefix":"10.0.0.0/16",
       "subnetName":"Subnet",
       "subnetPrefix":"10.0.0.0/24",
       "storageAccountType":"Standard_LRS",
-      "publicIPAddressName":"vmpublicIP",
+      "publicIPAddressName":"_PublicIP",
       "publicIPAddressType":"Dynamic",
       "vmSize":"[parameters('vmSizeSelect')]",
-      "virtualNetworkName":"olvmVNET",
+      "virtualNetworkName":"[concat(parameters('wlsDomainName'),'_VNET')]",
       "ScriptFolder": "scripts",
       "ScriptFileName": "setupClusterDomain.sh",
       "linuxConfiguration":{
@@ -170,7 +170,7 @@
       {
          "type":"Microsoft.Network/publicIPAddresses",
          "apiVersion":"2018-11-01",
-         "name":"[concat(variables('publicIPAddressName'),copyIndex())]",
+         "name":"[concat(concat(variables('vmNamePrefix'),copyIndex()),variables('publicIPAddressName'))]",
          "location":"[parameters('location')]",
          "copy":{
             "name":"publicIPLoop",
@@ -207,7 +207,7 @@
       {
          "type":"Microsoft.Network/networkInterfaces",
          "apiVersion":"2018-11-01",
-         "name":"[concat(variables('nicName'),copyIndex())]",
+         "name":"[concat(concat(variables('vmNamePrefix'),copyIndex()),variables('nicName'))]",
          "location":"[parameters('location')]",
          "copy":{
             "name":"nicLoop",
@@ -224,7 +224,7 @@
                   "properties":{
                      "privateIPAllocationMethod":"Dynamic",
                      "publicIPAddress":{
-                        "id":"[resourceId('Microsoft.Network/publicIPAddresses',concat(variables('publicIPAddressName'),copyIndex()))]"
+                        "id":"[resourceId('Microsoft.Network/publicIPAddresses',concat(concat(variables('vmNamePrefix'),copyIndex()),variables('publicIPAddressName')))]"
                      },
                      "subnet":{
                         "id":"[variables('subnetRef')]"
@@ -268,7 +268,7 @@
                },
                "dataDisks":[
                   {
-                     "diskSizeGB":1023,
+                     "diskSizeGB":900,
                      "lun":0,
                      "createOption":"Empty"
                   }
@@ -277,7 +277,7 @@
             "networkProfile":{
                "networkInterfaces":[
                   {
-                     "id":"[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicName'),copyIndex()))]"
+                     "id":"[resourceId('Microsoft.Network/networkInterfaces',concat(concat(variables('vmNamePrefix'),copyIndex()),variables('nicName')))]"
                   }
                ]
             },
@@ -308,7 +308,7 @@
             "autoUpgradeMinorVersion":true,
             "settings":{
                        "fileUris": [
-			   "https://raw.githubusercontent.com/wls-eng/arm-oraclelinux-wls-cluster/master/setupClusterDomain.sh"
+			   "https://raw.githubusercontent.com/wls-eng/arm-oraclelinux-wls-cluster/develop/setupClusterDomain.sh"
 			],
 			"commandToExecute": "[concat('sh setupClusterDomain.sh',' ',parameters('acceptOTNLicenseAgreement'),' ',parameters('otnAccountUsername'),' ',parameters('otnAccountPassword'),' ',parameters('wlsDomainName'),' ',parameters('wlsUserName'),' ',parameters('wlsPassword'),' ',parameters('managedServerPrefix'),' ',copyIndex(),' ',variables('vmNamePrefix'))]"	
             }
