@@ -226,6 +226,9 @@ topology:
             SSL:
                ListenPort: $wlsSSLAdminPort
                Enabled: true
+   SecurityConfiguration:	       
+       NodeManagerUsername: "$wlsUserName"
+       NodeManagerPasswordEncrypted: "$wlsPassword"
 EOF
 }
 
@@ -254,24 +257,9 @@ topology:
            Notes: "$wlsServerName managed server"
            Cluster: "$wlsClusterName"
            Machine: "$nmHost"
-EOF
-}
-
-# This function to create model for sample application deployment 
-function create_app_deploy_model()
-{
-    echo "Creating deploying applicaton model"
-    cat <<EOF >$DOMAIN_PATH/deploy-app.yaml
-domainInfo:
-   AdminUserName: "$wlsUserName"
-   AdminPassword: "$wlsPassword"
-   ServerStartMode: prod
-appDeployments:
-   Application:
-     shoppingcart :
-          SourcePath: "$DOMAIN_PATH/shoppingcart.war"
-          Target: admin
-          ModuleType: war
+   SecurityConfiguration:	       
+       NodeManagerUsername: "$wlsUserName"
+       NodeManagerPasswordEncrypted: "$wlsPassword" 
 EOF
 }
 
@@ -393,6 +381,14 @@ done
 # Create systemctl service for nodemanager
 function create_nodemanager_service()
 {
+ echo "Setting CrashRecoveryEnabled true at $DOMAIN_PATH/$wlsDomainName/nodemanager/nodemanager.properties"
+ sed -i.bak -e 's/CrashRecoveryEnabled=false/CrashRecoveryEnabled=true/g'  $DOMAIN_PATH/$wlsDomainName/nodemanager/nodemanager.properties
+ if [ $? != 0 ];
+ then
+   echo "Warning : Failed in setting option CrashRecoveryEnabled=true. Continuing without the option."
+   mv $DOMAIN_PATH/nodemanager/nodemanager.properties.bak $DOMAIN_PATH/$wlsDomainName/nodemanager/nodemanager.properties
+ fi
+ sudo chown -R $username:$groupname $DOMAIN_PATH/nodemanager/nodemanager.properties*
  echo "Creating NodeManager service"
  cat <<EOF >/etc/systemd/system/wls_nodemanager.service
  [Unit]
