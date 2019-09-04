@@ -44,18 +44,36 @@ So, when this template is run, user will be required to accept the <a href="http
 **Cluster domain configuration**
 <p>Minimum 2 VMs  and maximum of 5 VMs involved for cluster domain setup.</p>
 <p>Domain setup will be available at "/u01/domains/{domain name}" on each VMs
-<p>1) First VM , say wlsVM0 - Nodemanager with Admin server setup will be made</p>
-<p>2) Second VM onwards, say wlsVM1 - Nodemanager with one managed server setup will be made</p>
-<p>3) On admin server vm say wlsVM0, nodemanager and admin server run as systemctl service</p>
-<p>4) On managed server vm, say wlsVM1 onwards , nodemanager run as systemctl service</p>
+<p>1)Weblogic admin server will be hosted on as per user supplied for parameter adminVMName. By default name will be adminVM </p>
+<p>2)Other VMs , depending on number of instances managed servers willbe hosted in VMs with name managed server prefix and index   </p>
 
 **Accessing Admin Console**
 <p>
 Follow steps once after successful deployment.
- <p> 1. Access the weblogic console using </p>
- <p>    http://{public ip address}:7001/console </p>
- <p>    https://{public ip address}:7002/console </p>
+ <p> You can refer the Outputs section of json file produced once after successful deployment
+ <p> Access the weblogic console using </p>
+ <p>   For non ssl access     : http://{public ip address or dns name}:7001/console </p>
+ <p>   For secured/ssl access : https://{public ip address or dns name}:7002/console </p>
 </p>
+
+<h3> Adding another managed server to  running cluster domain </h3>
+
+**PowerShell** 
+
+*#use this command when you need to create a new resource group for your deployment*
+
+*New-AzResourceGroupDeployment -ResourceGroupName &lt;resource-group-name&gt; -TemplateUri https://raw.githubusercontent.com/wls-eng/arm-oraclelinux-wls-cluster/master/addnodedeploy.json*
+
+**Command line**
+
+*#use this command when you need to create a new resource group for your deployment*
+
+*az group deployment create --resource-group &lt;resource-group-name&gt; --template-uri https://raw.githubusercontent.com/wls-eng/arm-oraclelinux-wls-cluster/master/addnodedeploy.json*
+
+<p>Note : </p>
+ <p>1) Parameters dnsLabelPrefix, managedServerName and vmName should be unique. Better to follow the existing naming conventions as per existing cluster domain setup. </p>
+ <p>2) adminURL should be supplied with {admin server public ip or dn name}:{ non ssl port} </p>
+ 
 
 If you are new to Azure virtual machines, see:
 
