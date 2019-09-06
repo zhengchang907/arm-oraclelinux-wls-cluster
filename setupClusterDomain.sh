@@ -34,9 +34,20 @@ function installUtilities()
     sudo yum install -y zip unzip wget vnc-server rng-tools
 
     #Setting up rngd utils
-    sudo systemctl status rngd
-    sudo systemctl start rngd
-    sudo systemctl status rngd
+    attempt=1
+    while [[ $attempt -lt 4 ]]
+    do
+       echo "Starting rngd service attempt $attempt"
+       sudo systemctl start rngd
+       attempt=`expr $attempt + 1`
+       sudo systemctl status rngd | grep running
+       if [[ $? == 0 ]]; 
+       then
+          echo "rngd utility service started successfully"
+          break
+       fi
+       sleep 1m
+    done  
 }
 
 function addOracleGroupAndUser()
@@ -668,6 +679,7 @@ function enabledAndStartNodeManagerService()
   sudo systemctl daemon-reload
   echo "Starting nodemanager service"
   sudo systemctl start wls_nodemanager
+  sleep 1m
 }
 
 function enableAndStartAdminServerService()
