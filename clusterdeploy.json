@@ -63,7 +63,7 @@
 			}
 		},
 		"wlsPassword": {
-			"type": "string",
+			"type": "securestring",
 			"metadata": {
 				"description": "Password for your Weblogic domain name"
 			}
@@ -186,7 +186,7 @@
 			"properties": {
 				"publicIPAllocationMethod": "[variables('publicIPAddressType')]",
 				"dnsSettings": {
-					"domainNameLabel": "[concat(parameters('dnsLabelPrefix'),copyindex())]"
+					"domainNameLabel": "[concat(toLower(parameters('dnsLabelPrefix')),copyindex(),'-',toLower(resourceGroup().name),'-',toLower(parameters('wlsDomainName')))]"
 				}
 			}
 		},
