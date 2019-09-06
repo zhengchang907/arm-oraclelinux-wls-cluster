@@ -53,7 +53,7 @@
       "wlsDomainName":{
          "type":"string",
          "metadata":{
-            "description":"Provide Weblogic domain name"
+            "description":"Provide existing running Weblogic domain name"
          }
       },
       "wlsUserName":{
@@ -63,7 +63,7 @@
          }
       },
       "wlsPassword":{
-         "type":"string",
+         "type":"securestring",
          "metadata":{
             "description":"Password for your Weblogic domain name"
          }
@@ -177,7 +177,7 @@
          "properties":{
             "publicIPAllocationMethod":"[variables('publicIPAddressType')]",
             "dnsSettings":{
-               "domainNameLabel":"[parameters('dnsLabelPrefix')]"
+               "domainNameLabel":"[concat(toLower(parameters('dnsLabelPrefix')),'-',toLower(resourceGroup().name),'-',toLower(parameters('wlsDomainName')))]"
             }
          }
       },
