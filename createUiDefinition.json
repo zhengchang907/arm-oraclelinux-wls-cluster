@@ -203,7 +203,7 @@
             "adminUsername": "[steps('Credentials').adminUsername]",
             "dnsLabelPrefix": "[basics('dnsLabelPrefix')]", 
             "managedServerPrefix": "[basics('managedServerPrefix')]", 
-            "numberOfInstances": "[basics('numberOfInstances')]",
+            "numberOfInstances": "[int(basics('numberOfInstances'))]",
             "otnAccountPassword": "[steps('Credentials').otnAccountPassword]",
             "otnAccountUsername": "[steps('Credentials').otnAccountUsername]",
             "vmSizeSelect": "[steps('VirtualMachineConfig').vmSizeSelect]",
