@@ -44,7 +44,7 @@
                 "name": "numberOfInstances",
                 "type": "Microsoft.Common.TextBox",
                 "label": "Number of VMs",
-                "defaultValue": 4,
+                "defaultValue": "4",
                 "toolTip": "The number of VMs to create, with one WebLogic node per VM",
                 "constraints": {
                     "required": true,
@@ -133,7 +133,7 @@
                         "name": "adminUsername",
                         "type": "Microsoft.Common.TextBox",
                         "label": "Username for admin account of VMs",
-                        "defaultValue": "adminadmin",
+                        "defaultValue": "weblogic",
                         "toolTip": "Use only allowed characters",
                         "constraints": {
                           "required": true,
