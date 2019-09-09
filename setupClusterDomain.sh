@@ -683,6 +683,7 @@ function enabledAndStartNodeManagerService()
   do
      echo "Starting nodemanager service attempt $attempt"
      sudo systemctl start wls_nodemanager
+     sleep 1m
      attempt=`expr $attempt + 1`
      sudo systemctl status wls_nodemanager | grep running
      if [[ $? == 0 ]]; 
@@ -700,6 +701,7 @@ function enableAndStartAdminServerService()
   sudo systemctl daemon-reload
   echo "Starting admin server service"
   sudo systemctl start wls_admin  
+
 }
 
 #main script starts here
