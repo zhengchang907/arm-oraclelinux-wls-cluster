@@ -359,6 +359,7 @@ topology:
              NMType : ssl  
    Cluster:
         '$wlsClusterName':
+             MigrationBasis: 'consensus'
    Server:
         '$wlsServerName':
             ListenPort: $wlsAdminPort
@@ -391,6 +392,7 @@ topology:
              NMType : ssl  
    Cluster:
         '$wlsClusterName':
+             MigrationBasis: 'consensus'
    Server:
         '$wlsServerName' :
            ListenPort: $wlsManagedPort
