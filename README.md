@@ -1,21 +1,6 @@
 # arm-oraclelinux-wls-admin
  Simple deployment of a Weblogic Cluster Domain on multiple Oracle Linux VMs with Weblogic Server pre-installed
 
-<table border="0">
-<tr border="0">
-    <td>
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fwls-eng%2Farm-oraclelinux-wls-cluster%2Fmaster%2Fclusterdeploy.json"" target="_blank">
-    <img src="http://azuredeploy.net/deploybutton.png"/>
-</a>
-    </td>
-    <td>
-<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fwls-eng%2Farm-oraclelinux-wls-cluster%2Fmaster%2Fclusterdeploy.json" target="_blank">
-    <img src="http://armviz.io/visualizebutton.png"/>
-</a>
-    </td>
-  </tr>
-</table>    
-
 This template allows us to deploy Weblogic Cluster Domain on multiple Oracle Linux VMs with Weblogic Server (12.2.1.3.0) pre-installed. 
 This template deploy by default, an A3 size VM in the resource group location and return the fully qualified domain name of the VM.
 
@@ -25,21 +10,40 @@ So, when this template is run, user will be required to accept the <a href="http
 
 <h3>Using the template</h3>
 
+<h4>Perform string substitution to generate the necessary artifacts for deployment or uploading to the Azure Cloud Partner Portal</h4>
+
+* Install Apache Maven.  This project uses Apache Maven to do simple
+  string substitution for several required parameters in the templates.
+  
+* From the top level run `mvn clean install`.
+
+* The templates end up in `arm-oraclelinux-wls-cluster/arm-oraclelinux-wls-cluster/target/arm`.  Change to that directory to run the templates.
+
+<h4>Once you have performed the string substitution, you can deploy the template via the command line</h4>
+
+
+
 **PowerShell** 
 
 *#use this command when you need to create a new resource group for your deployment*
 
 *New-AzResourceGroup -Name &lt;resource-group-name&gt; -Location &lt;resource-group-location&gt; 
 
-*New-AzResourceGroupDeployment -ResourceGroupName &lt;resource-group-name&gt; -TemplateUri https://raw.githubusercontent.com/wls-eng/arm-oraclelinux-wls-cluster/master/clusterdeploy.json*
+*New-AzResourceGroupDeployment -ResourceGroupName &lt;resource-group-name&gt; -TemplateFile mainTemplate.json*
 
 **Command line**
 
-*#use this command when you need to create a new resource group for your deployment*
+```
+az group create --name &lt;resource-group-name&gt; --location &lt;resource-group-location&gt;
 
-*az group create --name &lt;resource-group-name&gt; --location &lt;resource-group-location&gt;
+az group deployment create --resource-group &lt;resource-group-name&gt; --template-file mainTemplate.json  --parameters @parametersFile.json
+```
 
-*az group deployment create --resource-group &lt;resource-group-name&gt; --template-uri https://raw.githubusercontent.com/wls-eng/arm-oraclelinux-wls-cluster/master/clusterdeploy.json*
+For example:
+
+```
+az group deployment create --resource-group 20191001-01-my-rg --parameters @my-parameters.json --template-file arm-oraclelinux-wls/target/arm/mainTemplate.json
+```
 
 **Cluster domain configuration**
 <p>Minimum 2 VMs  and maximum of 5 VMs involved for cluster domain setup.</p>

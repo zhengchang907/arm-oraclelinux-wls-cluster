@@ -152,7 +152,6 @@
 		"publicIPAddressType": "Dynamic",
 		"vmSize": "[parameters('vmSizeSelect')]",
 		"virtualNetworkName": "[concat(parameters('wlsDomainName'),'_VNET')]",
-		"ScriptFolder": "scripts",
 		"ScriptFileName": "setupClusterDomain.sh",
 		"linuxConfiguration": {
 			"disablePasswordAuthentication": true,
@@ -334,7 +333,7 @@
 				"autoUpgradeMinorVersion": true,
 				"settings": {
 					"fileUris": [
-                                            "[uri(parameters('_artifactsLocation'), concat('setupClusterDomain.sh', parameters('_artifactsLocationSasToken')))]"
+                                            "[uri(parameters('_artifactsLocation'), concat(variables('ScriptFileName'), parameters('_artifactsLocationSasToken')))]"
 					],
 					"commandToExecute": "[concat('sh setupClusterDomain.sh',' ',parameters('acceptOTNLicenseAgreement'),' ',parameters('otnAccountUsername'),' ',parameters('otnAccountPassword'),' ',parameters('wlsDomainName'),' ',parameters('wlsUserName'),' ',parameters('wlsPassword'),' ',if(equals(copyIndex(),0),'admin',concat(parameters('managedServerPrefix'), copyIndex())),' ',parameters('adminVMName'))]"	
 				}
