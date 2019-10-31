@@ -29,9 +29,9 @@
     <version>1.0.1</version>
     
     <parent>
-        <groupId>com.oracle.weblogic.azure.parent</groupId>
-        <artifactId>arm-oraclelinux-wls-parent</artifactId>
-        <version>1.0.3</version>
+        <groupId>com.microsoft.azure.iaas</groupId>
+        <artifactId>azure-javaee-iaas-parent</artifactId>
+        <version>1.0.0</version>
         <relativePath></relativePath>
     </parent>
     
@@ -39,7 +39,8 @@
     <name>${project.artifactId}</name>
 
     <properties>
-      <test.args>-Test deploymentTemplate</test.args>
+        <template.validation.tests.directory>${basedir}/../../azure-quickstart-templates/test/arm-ttk</template.validation.tests.directory>
+        <test.args>-Test deploymentTemplate</test.args>
     </properties>
 
     <description>
