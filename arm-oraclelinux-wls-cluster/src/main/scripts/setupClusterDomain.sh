@@ -519,7 +519,7 @@ EOF
 function create_adminSetup()
 {
     echo "Creating Admin Setup"
-    echo "Creating domain path /u01/domains"
+    echo "Creating domain path ${DOMAIN_PATH}"
     echo "Downloading weblogic-deploy-tool"
     cd $DOMAIN_PATH
     wget -q $WEBLOGIC_DEPLOY_TOOL  
