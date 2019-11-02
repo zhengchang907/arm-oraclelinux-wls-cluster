@@ -27,7 +27,7 @@
     <groupId>com.oracle.weblogic.azure</groupId>
     <artifactId>arm-oraclelinux-wls-cluster-root</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.7</version>
+    <version>1.0.8</version>
     <name>${project.artifactId}</name>
     <description>
         
