@@ -7,7 +7,7 @@
 			"metadata": {
 				"description": "The base URI where artifacts required by this template are located. When the template is deployed using the accompanying scripts, a private location in the subscription will be used and this value will be automatically generated."
 			},
-			"defaultValue": "${artifactsLocationBase}/${project.artifactId}/${git.tag}/${project.artifactId}/src/main/scripts/"
+			"defaultValue": "[deployment().properties.templateLink.uri]"
 		},
 		"_artifactsLocationSasToken": {
 			"type": "securestring",
@@ -180,7 +180,7 @@
 		},
 		{
 			"type": "Microsoft.Storage/storageAccounts",
-			"apiVersion": "2018-11-01",
+			"apiVersion": "2019-06-01",
 			"name": "[variables('storageAccountName')]",
 			"location": "[parameters('location')]",
 			"sku": {
@@ -201,7 +201,7 @@
 			"properties": {
 				"publicIPAllocationMethod": "[variables('publicIPAddressType')]",
 				"dnsSettings": {
-					"domainNameLabel": "[concat(toLower(parameters('dnsLabelPrefix')),copyindex(),'-',toLower(resourceGroup().name),'-',toLower(parameters('wlsDomainName')))]"
+					"domainNameLabel": "[concat(toLower(parameters('dnsLabelPrefix')),'-',take(replace(guid(toLower(resourceGroup().name)), '-', ''), 10),'-',toLower(parameters('wlsDomainName')))]"
 				}
 			}
 		},
@@ -314,7 +314,7 @@
 		{
 			"type": "Microsoft.Compute/virtualMachines/extensions",
 			"name": "[if(equals(copyIndex(),0),concat(parameters('adminVMName'),'/newuserscript'),concat(variables('managedVMPrefix'), copyIndex(),'/newuserscript'))]",
-			"apiVersion": "2017-12-01",
+			"apiVersion": "2019-07-01",
 			"location": "[parameters('location')]",
 			"copy": {
 				"name": "virtualMachineExtensionLoop",
@@ -330,7 +330,7 @@
 				"autoUpgradeMinorVersion": true,
 				"settings": {
 					"fileUris": [
-						"[uri(parameters('_artifactsLocation'), concat(variables('ScriptFileName'), parameters('_artifactsLocationSasToken')))]"
+						"[uri(parameters('_artifactsLocation'), concat('scripts/', variables('ScriptFileName'), parameters('_artifactsLocationSasToken')))]"
 					],
 					"commandToExecute": "[concat('sh',' ',variables('ScriptFileName'),' ',parameters('acceptOTNLicenseAgreement'),' ',parameters('otnAccountUsername'),' ',parameters('otnAccountPassword'),' ',parameters('wlsDomainName'),' ',parameters('wlsUserName'),' ',parameters('wlsPassword'),' ',if(equals(copyIndex(),0),'admin',concat(parameters('managedServerPrefix'), copyIndex())),' ',parameters('adminVMName'))]"
 				}
