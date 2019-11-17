@@ -9,14 +9,14 @@
 			},
 			"defaultValue": "${artifactsLocationBase}/${project.artifactId}/${git.tag}/${project.artifactId}/src/main/scripts/"
 		},
-                "_artifactsLocationSasToken": {
-                    "type": "securestring",
-                    "metadata": {
-                        "description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
-                    },
-                    "defaultValue": ""
-                },
-	        "adminUsername": {
+		"_artifactsLocationSasToken": {
+			"type": "securestring",
+			"metadata": {
+				"description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
+			},
+			"defaultValue": ""
+		},
+		"adminUsername": {
 			"type": "string",
 			"metadata": {
 				"description": "User name for the Virtual Machine."
@@ -165,19 +165,19 @@
 		"subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]"
 	},
 	"resources": [
-                 { 
-                     "apiVersion": "2018-02-01",
-                     "name": "${tracking.pid}", 
-                     "type": "Microsoft.Resources/deployments",
-                     "properties": {
-                         "mode": "Incremental",
-                         "template": {
-                             "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-                             "contentVersion": "1.0.0.0",
-                             "resources": []
-                         }
-                     }
-                },
+		{
+			"apiVersion": "2018-02-01",
+			"name": "${tracking.pid}",
+			"type": "Microsoft.Resources/deployments",
+			"properties": {
+				"mode": "Incremental",
+				"template": {
+					"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+					"contentVersion": "1.0.0.0",
+					"resources": []
+				}
+			}
+		},
 		{
 			"type": "Microsoft.Storage/storageAccounts",
 			"apiVersion": "2018-11-01",
@@ -187,8 +187,7 @@
 				"name": "[variables('storageAccountType')]"
 			},
 			"kind": "Storage",
-			"properties": {
-			}
+			"properties": {}
 		},
 		{
 			"type": "Microsoft.Network/publicIPAddresses",
@@ -331,9 +330,9 @@
 				"autoUpgradeMinorVersion": true,
 				"settings": {
 					"fileUris": [
-                                            "[uri(parameters('_artifactsLocation'), concat(variables('ScriptFileName'), parameters('_artifactsLocationSasToken')))]"
+						"[uri(parameters('_artifactsLocation'), concat(variables('ScriptFileName'), parameters('_artifactsLocationSasToken')))]"
 					],
-					"commandToExecute": "[concat('sh',' ',variables('ScriptFileName'),' ',parameters('acceptOTNLicenseAgreement'),' ',parameters('otnAccountUsername'),' ',parameters('otnAccountPassword'),' ',parameters('wlsDomainName'),' ',parameters('wlsUserName'),' ',parameters('wlsPassword'),' ',if(equals(copyIndex(),0),'admin',concat(parameters('managedServerPrefix'), copyIndex())),' ',parameters('adminVMName'))]"	
+					"commandToExecute": "[concat('sh',' ',variables('ScriptFileName'),' ',parameters('acceptOTNLicenseAgreement'),' ',parameters('otnAccountUsername'),' ',parameters('otnAccountPassword'),' ',parameters('wlsDomainName'),' ',parameters('wlsUserName'),' ',parameters('wlsPassword'),' ',if(equals(copyIndex(),0),'admin',concat(parameters('managedServerPrefix'), copyIndex())),' ',parameters('adminVMName'))]"
 				}
 			}
 		}
