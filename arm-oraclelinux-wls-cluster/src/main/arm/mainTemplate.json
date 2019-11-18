@@ -201,7 +201,7 @@
 			"properties": {
 				"publicIPAllocationMethod": "[variables('publicIPAddressType')]",
 				"dnsSettings": {
-					"domainNameLabel": "[concat(toLower(parameters('dnsLabelPrefix')),'-',take(replace(guid(toLower(resourceGroup().name)), '-', ''), 10),'-',toLower(parameters('wlsDomainName')))]"
+				        "domainNameLabel": "[concat(toLower(parameters('dnsLabelPrefix')),copyindex(),'-',take(replace(guid(toLower(resourceGroup().name)),'-',''),10),'-',toLower(parameters('wlsDomainName')))]"
 				}
 			}
 		},
