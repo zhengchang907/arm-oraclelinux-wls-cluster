@@ -7,16 +7,20 @@
 			"metadata": {
 				"description": "The base URI where artifacts required by this template are located. When the template is deployed using the accompanying scripts, a private location in the subscription will be used and this value will be automatically generated."
 			},
-			"defaultValue": "${artifactsLocationBase}/${project.artifactId}/${git.tag}/${project.artifactId}/src/main/scripts/"
+			"defaultValue": "[deployment().properties.templateLink.uri]"
 		},
-                "_artifactsLocationSasToken": {
-                    "type": "securestring",
-                    "metadata": {
-                        "description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
-                    },
-                    "defaultValue": ""
+		"_artifactsLocationSasToken": {
+			"type": "securestring",
+			"metadata": {
+				"description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated. Use the defaultValue if the staging location is not secured."
+			},
+			"defaultValue": ""
+		},
+                "guidValue": {
+                    "type": "string",
+                    "defaultValue": "[newGuid()]"
                 },
-	        "adminUsername": {
+		"adminUsername": {
 			"type": "string",
 			"metadata": {
 				"description": "User name for the Virtual Machine."
@@ -150,6 +154,7 @@
 		"publicIPAddressType": "Dynamic",
 		"vmSize": "[parameters('vmSizeSelect')]",
 		"virtualNetworkName": "[concat(parameters('wlsDomainName'),'_VNET')]",
+                "oradownScript": "oradown.sh",
 		"ScriptFileName": "setupClusterDomain.sh",
 		"linuxConfiguration": {
 			"disablePasswordAuthentication": true,
@@ -165,30 +170,29 @@
 		"subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]"
 	},
 	"resources": [
-                 { 
-                     "apiVersion": "2018-02-01",
-                     "name": "${tracking.pid}", 
-                     "type": "Microsoft.Resources/deployments",
-                     "properties": {
-                         "mode": "Incremental",
-                         "template": {
-                             "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-                             "contentVersion": "1.0.0.0",
-                             "resources": []
-                         }
-                     }
-                },
+		{
+			"apiVersion": "2018-02-01",
+			"name": "${tracking.pid}",
+			"type": "Microsoft.Resources/deployments",
+			"properties": {
+				"mode": "Incremental",
+				"template": {
+					"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+					"contentVersion": "1.0.0.0",
+					"resources": []
+				}
+			}
+		},
 		{
 			"type": "Microsoft.Storage/storageAccounts",
-			"apiVersion": "2018-11-01",
+			"apiVersion": "2019-06-01",
 			"name": "[variables('storageAccountName')]",
 			"location": "[parameters('location')]",
 			"sku": {
 				"name": "[variables('storageAccountType')]"
 			},
 			"kind": "Storage",
-			"properties": {
-			}
+			"properties": {}
 		},
 		{
 			"type": "Microsoft.Network/publicIPAddresses",
@@ -202,7 +206,7 @@
 			"properties": {
 				"publicIPAllocationMethod": "[variables('publicIPAddressType')]",
 				"dnsSettings": {
-					"domainNameLabel": "[concat(toLower(parameters('dnsLabelPrefix')),copyindex(),'-',toLower(resourceGroup().name),'-',toLower(parameters('wlsDomainName')))]"
+				        "domainNameLabel": "[concat(toLower(parameters('dnsLabelPrefix')),copyindex(),'-',take(replace(parameters('guidValue'),'-',''),10),'-',toLower(parameters('wlsDomainName')))]"
 				}
 			}
 		},
@@ -315,7 +319,7 @@
 		{
 			"type": "Microsoft.Compute/virtualMachines/extensions",
 			"name": "[if(equals(copyIndex(),0),concat(parameters('adminVMName'),'/newuserscript'),concat(variables('managedVMPrefix'), copyIndex(),'/newuserscript'))]",
-			"apiVersion": "2017-12-01",
+			"apiVersion": "2019-07-01",
 			"location": "[parameters('location')]",
 			"copy": {
 				"name": "virtualMachineExtensionLoop",
@@ -331,9 +335,10 @@
 				"autoUpgradeMinorVersion": true,
 				"settings": {
 					"fileUris": [
-                                            "[uri(parameters('_artifactsLocation'), concat(variables('ScriptFileName'), parameters('_artifactsLocationSasToken')))]"
+						"[uri(parameters('_artifactsLocation'), concat('scripts/', variables('ScriptFileName'), parameters('_artifactsLocationSasToken')))]",
+						"[uri(parameters('_artifactsLocation'), concat('scripts/', variables('oradownScript'), parameters('_artifactsLocationSasToken')))]"
 					],
-					"commandToExecute": "[concat('sh',' ',variables('ScriptFileName'),' ',parameters('acceptOTNLicenseAgreement'),' ',parameters('otnAccountUsername'),' ',parameters('otnAccountPassword'),' ',parameters('wlsDomainName'),' ',parameters('wlsUserName'),' ',parameters('wlsPassword'),' ',if(equals(copyIndex(),0),'admin',concat(parameters('managedServerPrefix'), copyIndex())),' ',parameters('adminVMName'))]"	
+					"commandToExecute": "[concat('sh',' ',variables('ScriptFileName'),' ',parameters('acceptOTNLicenseAgreement'),' ',parameters('otnAccountUsername'),' ',parameters('otnAccountPassword'),' ',parameters('wlsDomainName'),' ',parameters('wlsUserName'),' ',parameters('wlsPassword'),' ',if(equals(copyIndex(),0),'admin',concat(parameters('managedServerPrefix'), copyIndex())),' ',parameters('adminVMName'))]"
 				}
 			}
 		}
