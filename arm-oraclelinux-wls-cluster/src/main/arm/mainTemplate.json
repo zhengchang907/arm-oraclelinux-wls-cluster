@@ -145,7 +145,7 @@
 		"imageOffer": "Oracle-Linux",
 		"managedVMPrefix": "[concat(parameters('managedServerPrefix'),'VM')]",
 		"nicName": "_NIC",
-		"storageAccountName": "[concat('storage',uniquestring(resourceGroup().id))]",
+		"storageAccountName": "[concat(take(replace(parameters('guidValue'),'-',''),6),'olvm')]",
 		"addressPrefix": "10.0.0.0/16",
 		"subnetName": "Subnet",
 		"subnetPrefix": "10.0.0.0/24",
@@ -311,7 +311,7 @@
 				"diagnosticsProfile": {
 					"bootDiagnostics": {
 						"enabled": true,
-						"storageUri": "[reference(resourceId(parameters('storageAccountResourceGroupName'), 'Microsoft.Storage/storageAccounts/', parameters('storageAccountName')), '2019-06-01').primaryEndpoints.blob]"
+						"storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts/', parameters('storageAccountName')), '2019-06-01').primaryEndpoints.blob]"
 					}
 				}
 			}
