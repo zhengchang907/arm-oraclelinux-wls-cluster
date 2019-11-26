@@ -16,10 +16,10 @@
 			},
 			"defaultValue": ""
 		},
-                "guidValue": {
-                    "type": "string",
-                    "defaultValue": "[newGuid()]"
-                },
+		"guidValue": {
+			"type": "string",
+			"defaultValue": "[newGuid()]"
+		},
 		"adminUsername": {
 			"type": "string",
 			"metadata": {
