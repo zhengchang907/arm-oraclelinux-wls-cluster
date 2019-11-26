@@ -16,10 +16,10 @@
 			},
 			"defaultValue": ""
 		},
-                "guidValue": {
-                    "type": "string",
-                    "defaultValue": "[newGuid()]"
-                },
+		"guidValue": {
+			"type": "string",
+			"defaultValue": "[newGuid()]"
+		},
 		"adminUsername": {
 			"type": "string",
 			"metadata": {
@@ -311,7 +311,7 @@
 				"diagnosticsProfile": {
 					"bootDiagnostics": {
 						"enabled": true,
-						"storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts/', parameters('storageAccountName')), '2019-06-01').primaryEndpoints.blob]"
+						"storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2019-06-01').primaryEndpoints.blob]"
 					}
 				}
 			}
