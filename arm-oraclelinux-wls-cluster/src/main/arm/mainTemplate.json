@@ -61,6 +61,13 @@
 				"description": "Password for your Oracle Technology Network account"
 			}
 		},
+		"portsToExpose": {
+			"type": "string",
+			"defaultValue": "80,443,7001-9000",
+			"metadata": {
+				"description": "Ports and port ranges to expose"
+			}
+		},
 		"wlsDomainName": {
 			"type": "string",
 			"metadata": {
@@ -155,7 +162,7 @@
 		"publicIPAddressType": "Dynamic",
 		"vmSize": "[parameters('vmSizeSelect')]",
 		"virtualNetworkName": "[concat(parameters('wlsDomainName'),'_VNET')]",
-                "oradownScript": "oradown.sh",
+		"oradownScript": "oradown.sh",
 		"ScriptFileName": "setupClusterDomain.sh",
 		"linuxConfiguration": {
 			"disablePasswordAuthentication": true,
@@ -168,7 +175,10 @@
 				]
 			}
 		},
-		"subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]"
+		"subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]",
+		"networkSecurityGroupName": "[concat(parameters('dnsLabelPrefix'), '-nsg')]",
+		"networkSecurityGroupRef": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]",
+		"requiredPortrange": ",65200-65535,5556"
 	},
 	"resources": [
 		{
@@ -180,8 +190,32 @@
 				"template": {
 					"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
 					"contentVersion": "1.0.0.0",
-					"resources": []
+					"resources": [
+					]
 				}
+			}
+		},
+		{
+			"type": "Microsoft.Network/networkSecurityGroups",
+			"apiVersion": "2019-06-01",
+			"name": "[variables('networkSecurityGroupName')]",
+			"location": "[parameters('location')]",
+			"properties": {
+				"securityRules": [
+					{
+						"name": "TCP",
+						"properties": {
+							"protocol": "TCP",
+							"sourcePortRange": "*",
+							"sourceAddressPrefix": "*",
+							"destinationAddressPrefix": "*",
+							"access": "Allow",
+							"priority": 320,
+							"direction": "Inbound",
+							"destinationPortRanges": "[split(concat(parameters('portsToExpose'),variables('requiredPortrange')), ',')]"
+						}
+					}
+				]
 			}
 		},
 		{
@@ -193,7 +227,8 @@
 				"name": "[variables('storageAccountType')]"
 			},
 			"kind": "Storage",
-			"properties": {}
+			"properties": {
+			}
 		},
 		{
 			"type": "Microsoft.Network/publicIPAddresses",
@@ -207,7 +242,7 @@
 			"properties": {
 				"publicIPAllocationMethod": "[variables('publicIPAddressType')]",
 				"dnsSettings": {
-				        "domainNameLabel": "[concat(toLower(parameters('dnsLabelPrefix')),copyindex(),'-',take(replace(parameters('guidValue'),'-',''),10),'-',toLower(parameters('wlsDomainName')))]"
+					"domainNameLabel": "[concat(toLower(parameters('dnsLabelPrefix')),copyindex(),'-',take(replace(parameters('guidValue'),'-',''),10),'-',toLower(parameters('wlsDomainName')))]"
 				}
 			}
 		},
@@ -216,6 +251,9 @@
 			"apiVersion": "2018-11-01",
 			"name": "[variables('virtualNetworkName')]",
 			"location": "[parameters('location')]",
+			"dependsOn": [
+				"[variables('networkSecurityGroupRef')]"
+			],
 			"properties": {
 				"addressSpace": {
 					"addressPrefixes": [
@@ -226,7 +264,10 @@
 					{
 						"name": "[variables('subnetName')]",
 						"properties": {
-							"addressPrefix": "[variables('subnetPrefix')]"
+							"addressPrefix": "[variables('subnetPrefix')]",
+							"networkSecurityGroup": {
+								"id": "[variables('networkSecurityGroupRef')]"
+							}
 						}
 					}
 				]
