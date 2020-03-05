@@ -136,14 +136,13 @@
       "imageOffer": "Oracle-Linux",
       "nicName": "_NIC",
       "storageAccountName": "[concat('storage',uniquestring(resourceGroup().id))]",
-      "addressPrefix": "10.0.0.0/16",
       "subnetName": "Subnet",
-      "subnetPrefix": "10.0.0.0/24",
       "storageAccountType": "Standard_LRS",
       "publicIPAddressName": "[concat(parameters('vmName'),'_PublicIP')]",
       "publicIPAddressType": "Dynamic",
       "vmSize": "[parameters('vmSizeSelect')]",
       "virtualNetworkName": "[concat(parameters('wlsDomainName'),'_VNET')]",
+      "oradownScript": "oradown.sh",
       "ScriptFileName": "addnode.sh",
       "linuxConfiguration": {
          "disablePasswordAuthentication": true,
@@ -183,25 +182,10 @@
          }
       },
       {
-         "type": "Microsoft.Network/virtualNetworks",
-         "apiVersion": "2018-11-01",
-         "name": "[variables('virtualNetworkName')]",
-         "location": "[parameters('location')]",
-         "properties": {
-            "addressSpace": {
-               "addressPrefixes": [
-                  "[variables('addressPrefix')]"
-               ]
-            },
-            "subnets": [
-               {
-                  "name": "[variables('subnetName')]",
-                  "properties": {
-                     "addressPrefix": "[variables('subnetPrefix')]"
-                  }
-               }
-            ]
-         }
+          "type": "Microsoft.Network/virtualNetworks/subnets",
+          "apiVersion": "2019-06-01",
+          "name": "[concat(variables('virtualNetworkName'), '/', variables('subnetName'))]",
+          "condition": "[and(empty(variables('virtualNetworkName')), empty(variables('subnetName')))]"
       },
       {
          "type": "Microsoft.Network/networkInterfaces",
@@ -209,8 +193,7 @@
          "name": "[concat(parameters('vmName'),variables('nicName'))]",
          "location": "[parameters('location')]",
          "dependsOn": [
-            "[resourceId('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
-            "[resourceId('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+            "[resourceId('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]"
          ],
          "properties": {
             "ipConfigurations": [
