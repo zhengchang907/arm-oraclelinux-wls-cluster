@@ -26,7 +26,7 @@
 
     <groupId>com.oracle.weblogic.azure</groupId>
     <artifactId>arm-oraclelinux-wls-cluster-addnode</artifactId>
-    <version>1.0.8</version>
+    <version>1.0.15</version>
     
     <parent>
         <groupId>com.microsoft.azure.iaas</groupId>
@@ -40,9 +40,8 @@
 
     <properties>
         <template.validation.tests.directory>${basedir}/../../arm-ttk/arm-ttk</template.validation.tests.directory>
-        <test.args>-Test deploymentTemplate</test.args>
         <test.parameters>-TestParameter '@{&quot;SampleName&quot;=&quot;addnode/src/main/scripts&quot;;&quot;RawRepoPath&quot;=&quot;${artifactsLocationBase}/arm-oraclelinux-wls-cluster/${git.tag}/&quot;}'</test.parameters>
-
+        <tracking.pid>pid-cae84e84-407c-5cef-b2a0-cd95d4ff8824</tracking.pid>
     </properties>
 
     <description>
