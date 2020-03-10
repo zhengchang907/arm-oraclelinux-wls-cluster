@@ -17,18 +17,6 @@
                 }
             },
             {
-                "name": "managedServerName",
-                "type": "Microsoft.Common.TextBox",
-                "label": "Managed Server Prefix",
-                "toolTip": "This string will be the base of the managed server name.",
-                "defaultValue": "msp",
-                "constraints": {
-                    "required": true,
-                    "regex": "^[a-z0-9A-Z]{3,20}$",
-                    "validationMessage": "The prefix must be between 3 and 20 characters long and contain letters, numbers only."
-                }
-            },
-            {
                 "name": "dnsLabelPrefix",
                 "type": "Microsoft.Common.TextBox",
                 "label": "DNS Label Prefix",
@@ -266,7 +254,6 @@
             "adminURL": "[concat(steps('WebLogicCluster').adminHost,':',steps('WebLogicCluster').adminPort)]",
             "adminUsername": "[steps('Credentials').adminUsername]",
             "dnsLabelPrefix": "[basics('dnsLabelPrefix')]",
-            "managedServerName": "[basics('managedServerName')]",
             "managedServerPrefix": "[steps('WebLogicCluster').managedServerPrefix]",
             "numberOfNodes": "[int(basics('numberOfNodes'))]",
             "otnAccountPassword": "[steps('Credentials').otnAccountPassword]",

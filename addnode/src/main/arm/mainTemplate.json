@@ -84,12 +84,6 @@
             "description": "Password for your Weblogic domain name"
          }
       },
-      "managedServerName": {
-         "type": "string",
-         "metadata": {
-            "description": "Provide managed server name"
-         }
-      },
       "managedServerPrefix": {
          "type": "string",
          "metadata": {
@@ -111,6 +105,10 @@
       "guidValue": {
               "type": "string",
               "defaultValue": "[newGuid()]"
+      },
+      "guidValueShort": {
+              "type": "string",
+              "defaultValue": "[take(replace(parameters('guidValue'),'-',''),6)]"
       },
       "linuxOSVersion": {
          "type": "string",
@@ -151,7 +149,7 @@
       "storageAccountName": "[concat('storage',uniquestring(resourceGroup().id))]",
       "subnetName": "Subnet",
       "storageAccountType": "Standard_LRS",
-      "vmName": "[concat(parameters('managedServerPrefix'),parameters('guidValue'))]",
+      "vmName": "[concat(parameters('managedServerPrefix'),parameters('guidValueShort'))]",
       "publicIPAddressName": "[concat(variables('vmName'),'_PublicIP')]",
       "publicIPAddressType": "Dynamic",
       "vmSize": "[parameters('vmSizeSelect')]",
@@ -210,7 +208,7 @@
          "properties": {
             "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
             "dnsSettings": {
-               "domainNameLabel": "[concat(toLower(parameters('dnsLabelPrefix')),'-',toLower(resourceGroup().name),'-',toLower(parameters('wlsDomainName')), copyIndex(1))]"
+               "domainNameLabel": "[concat(toLower(parameters('dnsLabelPrefix')),'-',toLower(variables('vmName')),'-',toLower(parameters('wlsDomainName')), copyIndex(1))]"
             }
          }
       },
@@ -327,7 +325,7 @@
                   "[uri(parameters('_artifactsLocation'), concat('scripts/', variables('ScriptFileName'), parameters('_artifactsLocationSasToken')))]",
                   "[uri(parameters('_artifactsLocation'), concat('scripts/', variables('oradownScript'), parameters('_artifactsLocationSasToken')))]"
                ],
-               "commandToExecute": "[concat('sh',' ',variables('ScriptFileName'),' ',parameters('acceptOTNLicenseAgreement'),' ',parameters('otnAccountUsername'),' ',parameters('otnAccountPassword'),' ',parameters('wlsDomainName'),' ',parameters('wlsUserName'),' ',parameters('wlsPassword'),' ',parameters('managedServerName'),copyIndex(1),' ',variables('vmName'),' ', parameters('adminURL'))]"
+               "commandToExecute": "[concat('sh',' ',variables('ScriptFileName'),' ',parameters('acceptOTNLicenseAgreement'),' ',parameters('otnAccountUsername'),' ',parameters('otnAccountPassword'),' ',parameters('wlsDomainName'),' ',parameters('wlsUserName'),' ',parameters('wlsPassword'),' ',variables('vmName'),copyIndex(1),' ',variables('vmName'),' ', parameters('adminURL'))]"
             }
          }
       }
