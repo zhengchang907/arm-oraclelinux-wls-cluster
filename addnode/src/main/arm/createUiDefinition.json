@@ -188,18 +188,6 @@
                 "bladeTitle": "Details of the existing WebLogic Cluster",
                 "elements": [
                     {
-                        "name": "clusterName",
-                        "type": "Microsoft.Common.TextBox",
-                        "label": "Cluster name",
-                        "toolTip": "The name of the existing cluster.",
-                        "defaultValue": "cluster1",
-                        "constraints": {
-                            "required": true,
-                            "regex": "^[a-z0-9A-Z]{3,20}$",
-                            "validationMessage": "The cluster name must be between 3 and 20 characters long and contain letters, numbers only."
-                        }
-                    },
-                    {
                         "name": "managedServerPrefix",
                         "type": "Microsoft.Common.TextBox",
                         "label": "Managed Server Prefix",

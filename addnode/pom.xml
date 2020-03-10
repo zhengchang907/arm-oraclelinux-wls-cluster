@@ -41,7 +41,7 @@
     <properties>
         <template.validation.tests.directory>${basedir}/../../arm-ttk/arm-ttk</template.validation.tests.directory>
         <test.parameters>-TestParameter '@{&quot;SampleName&quot;=&quot;addnode/src/main/scripts&quot;;&quot;RawRepoPath&quot;=&quot;${artifactsLocationBase}/arm-oraclelinux-wls-cluster/${git.tag}/&quot;}'</test.parameters>
-        <tracking.pid>pid-cae84e84-407c-5cef-b2a0-cd95d4ff8824</tracking.pid>
+        <tracking.pid>pid-ffa02caf-ecb9-59df-82ce-74b9b0247c50</tracking.pid>
     </properties>
 
     <description>
