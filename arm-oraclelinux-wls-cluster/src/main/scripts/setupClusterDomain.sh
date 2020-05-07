@@ -401,7 +401,9 @@ EOF
 function create_admin_model()
 {
     echo "Creating admin domain model"
-    cat <<EOF >$DOMAIN_PATH/admin-domain.yaml
+   if [ -z "$AppGWHostName" ];
+   then
+      cat <<EOF >$DOMAIN_PATH/admin-domain.yaml
 domainInfo:
    AdminUserName: "$wlsUserName"
    AdminPassword: "$wlsPassword"
@@ -429,6 +431,39 @@ topology:
        NodeManagerUsername: "$wlsUserName"
        NodeManagerPasswordEncrypted: "$wlsPassword"
 EOF
+   else
+      cat <<EOF >$DOMAIN_PATH/admin-domain.yaml
+domainInfo:
+   AdminUserName: "$wlsUserName"
+   AdminPassword: "$wlsPassword"
+   ServerStartMode: prod
+topology:
+   Name: "$wlsDomainName"
+   AdminServerName: admin
+   Machine:
+     '$nmHost':
+         NodeManager:
+             ListenAddress: "$nmHost"
+             ListenPort: $nmPort
+             NMType : ssl
+   Cluster:
+        '$wlsClusterName':
+             MigrationBasis: 'consensus'
+             FrontendHost: '$AppGWHostName'
+             FrontendHTTPPort:  $AppGWHttpPort
+             FrontendHTTPSPort: $AppGWHttpsPort
+   Server:
+        '$wlsServerName':
+            ListenPort: $wlsAdminPort
+            RestartDelaySeconds: 10
+            SSL:
+               ListenPort: $wlsSSLAdminPort
+               Enabled: true
+   SecurityConfiguration:
+       NodeManagerUsername: "$wlsUserName"
+       NodeManagerPasswordEncrypted: "$wlsPassword"
+EOF
+   fi
 }
 
 #Creates weblogic deployment model for cluster domain managed server
@@ -451,6 +486,16 @@ topology:
    Cluster:
         '$wlsClusterName':
              MigrationBasis: 'consensus'
+EOF
+   if [ -n "$AppGWHostName" ];
+   then
+	      cat <<EOF >>$DOMAIN_PATH/managed-domain.yaml            
+             FrontendHost: '$AppGWHostName'
+             FrontendHTTPPort:  $AppGWHttpPort
+             FrontendHTTPSPort: $AppGWHttpsPort
+EOF
+   fi
+   cat <<EOF >>$DOMAIN_PATH/managed-domain.yaml          
    Server:
         '$wlsServerName' :
            ListenPort: $wlsManagedPort
@@ -889,6 +934,9 @@ export POSTGRESQL_JDBC_DRIVER=${POSTGRESQL_JDBC_DRIVER_URL##*/}
 
 export MSSQL_JDBC_DRIVER_URL=https://repo.maven.apache.org/maven2/com/microsoft/sqlserver/mssql-jdbc/7.4.1.jre8/mssql-jdbc-7.4.1.jre8.jar
 export MSSQL_JDBC_DRIVER=${MSSQL_JDBC_DRIVER_URL##*/}
+
+export AppGWHttpPort=80
+export AppGWHttpsPort=443
 
 export SCRIPT_PWD=`pwd`
 chmod ugo+x ${SCRIPT_PWD}/oradown.sh
