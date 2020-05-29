@@ -220,7 +220,7 @@
     "resources": [
         {
             "apiVersion": "2019-10-01",
-            "name": "${cluster.cluster.start}",
+            "name": "pid-07bfd1f7-83ff-50cd-bd74-61b00a2a6808",
             "type": "Microsoft.Resources/deployments",
             "properties": {
                 "mode": "Incremental",
@@ -513,7 +513,7 @@
         },
         {
             "apiVersion": "2019-10-01",
-            "name": "${cluster.cluster.end}",
+            "name": "pid-f05658d8-329d-55e8-9077-5761b8279b31",
             "type": "Microsoft.Resources/deployments",
             "dependsOn": [
                 "virtualMachineExtensionLoop"
