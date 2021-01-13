@@ -75,14 +75,14 @@
                 "description": "Userid of Database"
             }
         },
-		"deny_public_access_for_admin_server": {
-			"type": "bool",
-			"defaultValue": false
-		},
-		"deny_public_access_for_managed_server": {
-			"type": "bool",
-			"defaultValue": false
-		},
+        "deny_public_access_for_admin_server": {
+            "type": "bool",
+            "defaultValue": false
+        },
+        "deny_public_access_for_managed_server": {
+            "type": "bool",
+            "defaultValue": false
+        },
         "dsConnectionURL": {
             "defaultValue": "",
             "type": "string",
@@ -455,8 +455,10 @@
                         "value": "[parameters('deny_public_access_for_managed_server')]"
                     }
                 }
-
-            }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'clusterLinkedTemplate')]"
+            ]
         },
         {
             "type": "Microsoft.Resources/deployments",
