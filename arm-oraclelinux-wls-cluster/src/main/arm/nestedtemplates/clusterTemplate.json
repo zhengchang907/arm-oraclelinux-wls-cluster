@@ -244,6 +244,21 @@
                             "direction": "Inbound",
                             "destinationPortRanges": [ "7005" ]
                         }
+                    },
+                    {
+                        "name": "WebLogiManagedChannelPortsDenied",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 230,
+                            "direction": "Inbound",
+                            "destinationPortRanges": [
+                                "8501"
+                            ],
+                            "sourceAddressPrefix": "Internet"
+                        }
                     }
                 ]
             }
