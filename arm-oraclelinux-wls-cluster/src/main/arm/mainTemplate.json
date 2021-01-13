@@ -249,13 +249,6 @@
                 "description": "Number of Coherence cache instances, used to create Virtual Machines and Managed Server for storage."
             }
         },
-        "portsToExpose": {
-            "defaultValue": "80,443,7001-9000",
-            "type": "string",
-            "metadata": {
-                "description": "Ports and port ranges to expose"
-            }
-        },
         "skuUrnVersion": {
             "type": "string",
             "defaultValue": "owls-141100-jdk11-ol76;Oracle:weblogic-141100-jdk11-ol76:owls-141100-jdk11-ol7;latest",
@@ -417,9 +410,6 @@
                     "numberOfInstances": {
                         "value": "[parameters('numberOfInstances')]"
                     },
-                    "portsToExpose": {
-                        "value": "[parameters('portsToExpose')]"
-                    },
                     "skuUrnVersion": {
                         "value": "[parameters('skuUrnVersion')]"
                     },
@@ -449,7 +439,7 @@
             "apiVersion": "2020-06-01",
             "name": "networkSecurityLinkedTemplate",
             "properties": {
-                "mode": "Incrremental",
+                "mode": "Incremental",
                 "templateLink": {
                     "uri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/', variables('name_nsgLinkedTemplateName')))]",
                     "contentVersion": "1.0.0.0"
