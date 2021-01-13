@@ -160,7 +160,7 @@
         "const_mountPointPath": "[concat('/mnt/', variables('name_share'))]",
         "const_publicIPAddressType": "Dynamic",
         // TCP ports 65200-65535 for the v2 NSGs SKU
-        "const_requiredPortrange": "65200-65535,5556",
+        // "const_requiredPortrange": "65200-65535,5556",
         "const_storageAccountType": "Standard_LRS",
         "const_subnetPrefix": "10.0.0.0/24",
         "const_vmSize": "[parameters('vmSizeSelect')]",
@@ -215,7 +215,7 @@
                             "access": "Allow",
                             "priority": 320,
                             "direction": "Inbound",
-                            "destinationPortRanges": "[split(variables('const_requiredPortrange'), ',')]"
+                            "destinationPortRanges": [ "65200-65535", "5556" ]
                         }
                     },
                     {
