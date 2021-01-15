@@ -366,8 +366,8 @@
     },
     "resources": [
         {
-            "apiVersion": "${azure.apiVersion}",
-            "name": "${cluster.start}",
+            "apiVersion": "2020-06-01",
+            "name": "pid-ca5e3350-ff62-5d92-83a3-acaaeae87c03",
             "type": "Microsoft.Resources/deployments",
             "properties": {
                 "mode": "Incremental",
@@ -381,7 +381,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "${azure.apiVersion}",
+            "apiVersion": "2020-06-01",
             "name": "clusterLinkedTemplate",
             "properties": {
                 "mode": "Incremental",
@@ -446,7 +446,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "${azure.apiVersion}",
+            "apiVersion": "2020-06-01",
             "name": "networkSecurityLinkedTemplate",
             "properties": {
                 "mode": "Incremental",
@@ -472,7 +472,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "${azure.apiVersion}",
+            "apiVersion": "2020-06-01",
             "name": "keyVaultLinkedAppGatewayTemplate",
             "condition": "[parameters('enableAppGateway')]",
             "properties": {
@@ -539,7 +539,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "${azure.apiVersion}",
+            "apiVersion": "2020-06-01",
             "name": "dbLinkedTemplate",
             "condition": "[parameters('enableDB')]",
             "dependsOn": [
@@ -594,7 +594,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/deployments', 'dbLinkedTemplate')]"
             ],
-            "apiVersion": "${azure.apiVersion}",
+            "apiVersion": "2020-06-01",
             "condition": "[parameters('enableAAD')]",
             "properties": {
                 "mode": "Incremental",
@@ -669,7 +669,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/deployments', 'aadLinkedTemplate')]"
             ],
-            "apiVersion": "${azure.apiVersion}",
+            "apiVersion": "2020-06-01",
             "condition": "[parameters('enableELK')]",
             "properties": {
                 "mode": "Incremental",
@@ -726,7 +726,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/deployments', 'elkLinkedTemplate')]"
             ],
-            "apiVersion": "${azure.apiVersion}",
+            "apiVersion": "2020-06-01",
             "condition": "[parameters('enableCoherence')]",
             "properties": {
                 "mode": "Incremental",
@@ -772,7 +772,7 @@
                         "value": "[parameters('location')]"
                     },
                     "logIndex": {
-                        "value": "[if(parameters('enableELK'), reference('elkLinkedTemplate', '${azure.apiVersion}').outputs.logIndex.value, '')]"
+                        "value": "[if(parameters('enableELK'), reference('elkLinkedTemplate', '2020-06-01').outputs.logIndex.value, '')]"
                     },
                     "logsToIntegrate": {
                         "value": "[parameters('logsToIntegrate')]"
@@ -787,7 +787,7 @@
                         "value": "[parameters('skuUrnVersion')]"
                     },
                     "storageAccountName": {
-                        "value": "[reference('clusterLinkedTemplate', '${azure.apiVersion}').outputs.storageAccountName.value]"
+                        "value": "[reference('clusterLinkedTemplate', '2020-06-01').outputs.storageAccountName.value]"
                     },
                     "usePreviewImage": {
                         "value": "[parameters('usePreviewImage')]"
@@ -808,8 +808,8 @@
             }
         },
         {
-            "apiVersion": "${azure.apiVersion}",
-            "name": "${cluster.end}",
+            "apiVersion": "2020-06-01",
+            "name": "pid-55160205-2f03-52c5-ae30-507952c0c4ea",
             "type": "Microsoft.Resources/deployments",
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/deployments', 'aadLinkedTemplate')]",
@@ -832,27 +832,27 @@
     "outputs": {
         "wlsDomainLocation": {
             "type": "string",
-            "value": "[reference('clusterLinkedTemplate', '${azure.apiVersion}').outputs.wlsDomainLocation.value]"
+            "value": "[reference('clusterLinkedTemplate', '2020-06-01').outputs.wlsDomainLocation.value]"
         },
         "adminHostName": {
             "type": "string",
-            "value": "[reference('clusterLinkedTemplate', '${azure.apiVersion}').outputs.adminHostName.value]"
+            "value": "[reference('clusterLinkedTemplate', '2020-06-01').outputs.adminHostName.value]"
         },
         "adminConsole": {
             "type": "string",
-            "value": "[reference('clusterLinkedTemplate', '${azure.apiVersion}').outputs.adminConsole.value]"
+            "value": "[reference('clusterLinkedTemplate', '2020-06-01').outputs.adminConsole.value]"
         },
         "adminSecuredConsole": {
             "type": "string",
-            "value": "[reference('clusterLinkedTemplate', '${azure.apiVersion}').outputs.adminSecuredConsole.value]"
+            "value": "[reference('clusterLinkedTemplate', '2020-06-01').outputs.adminSecuredConsole.value]"
         },
         "appGatewayURL": {
             "type": "string",
-            "value": "[if(parameters('enableAppGateway'), reference('keyVaultLinkedAppGatewayTemplate', '${azure.apiVersion}').outputs.appGatewayURL.value, '')]"
+            "value": "[if(parameters('enableAppGateway'), reference('keyVaultLinkedAppGatewayTemplate', '2020-06-01').outputs.appGatewayURL.value, '')]"
         },
         "logIndex": {
             "type": "string",
-            "value": "[if(parameters('enableELK'), reference('elkLinkedTemplate', '${azure.apiVersion}').outputs.logIndex.value, '')]"
+            "value": "[if(parameters('enableELK'), reference('elkLinkedTemplate', '2020-06-01').outputs.logIndex.value, '')]"
         }
     }
 }
