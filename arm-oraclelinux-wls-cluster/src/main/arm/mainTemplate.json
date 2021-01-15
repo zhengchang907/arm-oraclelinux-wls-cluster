@@ -455,7 +455,7 @@
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
-                    "name_networkSecurityGroup": {
+                    "networkSecurityGroupName": {
                         "value": "[concat(parameters('dnsLabelPrefix'), '-nsg')]"
                     },
                     "denyPublicAccessForAdminServer": {

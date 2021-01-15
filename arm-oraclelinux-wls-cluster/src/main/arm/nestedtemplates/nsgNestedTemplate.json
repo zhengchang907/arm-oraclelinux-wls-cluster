@@ -2,12 +2,6 @@
 	"$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
 	"contentVersion": "1.0.0.0",
 	"parameters": {
-		"name_networkSecurityGroup": {
-			"type": "string",
-			"metadata": {
-				"description": "Network Security Group name"
-			}
-		},
 		"denyPublicAccessForAdminServer": {
 			"type": "bool",
 			"defaultValue": false
@@ -19,18 +13,21 @@
 		"enableAppGateway": {
 			"type": "bool",
 			"defaultValue": false
+		},
+		"networkSecurityGroupName": {
+			"type": "string",
+			"metadata": {
+				"description": "Network Security Group name"
+			}
 		}
 	},
 	"variables": {
-		"const_subnetPrefix": {
-			"type": "string",
-			"defaultValue": "10.0.0.0/24"
-		}
+		"const_subnetPrefix": "10.0.0.0/24"
 	},
 	"resources": [
 		{
 			"type": "Microsoft.Network/networkSecurityGroups/securityRules",
-			"name": "[concat(parameters('name_networkSecurityGroup'),'/','WebLogicAdminPortsAllowed')]",
+			"name": "[concat(parameters('networkSecurityGroupName'),'/','WebLogicAdminPortsAllowed')]",
 			"condition": "[not(parameters('denyPublicAccessForAdminServer'))]",
 			"apiVersion": "${azure.apiVersion}",
 			"properties": {
@@ -49,7 +46,7 @@
 		},
 		{
 			"type": "Microsoft.Network/networkSecurityGroups/securityRules",
-			"name": "[concat(parameters('name_networkSecurityGroup'),'/','WebLogicAdminPortsDenied')]",
+			"name": "[concat(parameters('networkSecurityGroupName'),'/','WebLogicAdminPortsDenied')]",
 			"condition": "[parameters('denyPublicAccessForAdminServer')]",
 			"apiVersion": "${azure.apiVersion}",
 			"properties": {
@@ -68,7 +65,7 @@
 		},
 		{
 			"type": "Microsoft.Network/networkSecurityGroups/securityRules",
-			"name": "[concat(parameters('name_networkSecurityGroup'),'/','WebLogiManagedPortsAllowed')]",
+			"name": "[concat(parameters('networkSecurityGroupName'),'/','WebLogiManagedPortsAllowed')]",
 			"condition": "[and(not(parameters('denyPublicAccessForManagedServer')), parameters('enableAppGateway'))]",
 			"apiVersion": "${azure.apiVersion}",
 			"properties": {
@@ -86,7 +83,7 @@
 		},
 		{
 			"type": "Microsoft.Network/networkSecurityGroups/securityRules",
-			"name": "[concat(parameters('name_networkSecurityGroup'),'/','WebLogiManagedPortsDenied')]",
+			"name": "[concat(parameters('networkSecurityGroupName'),'/','WebLogiManagedPortsDenied')]",
 			"condition": "[and(parameters('denyPublicAccessForManagedServer'), parameters('enableAppGateway'))]",
 			"apiVersion": "${azure.apiVersion}",
 			"properties": {
