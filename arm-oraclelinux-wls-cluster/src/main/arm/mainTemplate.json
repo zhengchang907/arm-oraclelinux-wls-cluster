@@ -249,6 +249,13 @@
                 "description": "Number of Coherence cache instances, used to create Virtual Machines and Managed Server for storage."
             }
         },
+        "portsToExpose": {
+            "type": "string",
+            "defaultValue": "80,443,7001-9000",
+            "metadata": {
+                "description": "Ports and port ranges to expose"
+            }
+        },
         "skuUrnVersion": {
             "type": "string",
             "defaultValue": "owls-141100-jdk11-ol76;Oracle:weblogic-141100-jdk11-ol76:owls-141100-jdk11-ol7;latest",
@@ -409,6 +416,9 @@
                     },
                     "numberOfInstances": {
                         "value": "[parameters('numberOfInstances')]"
+                    },
+                    "portsToExpose": {
+                        "value": "[parameters('portsToExpose')]"
                     },
                     "skuUrnVersion": {
                         "value": "[parameters('skuUrnVersion')]"

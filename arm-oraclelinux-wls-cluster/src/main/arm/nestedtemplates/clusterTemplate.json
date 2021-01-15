@@ -85,6 +85,13 @@
                 "description": "Number of VMs to deploy, limit 5 since this sample is using a single storage account"
             }
         },
+        "portsToExpose": {
+            "type": "string",
+            "defaultValue": "80,443,7001-9000",
+            "metadata": {
+                "description": "Ports and port ranges to expose"
+            }
+        },
         "skuUrnVersion": {
             "type": "string",
             "defaultValue": "owls-141100-jdk11-ol76;Oracle:weblogic-141100-jdk11-ol76:owls-141100-jdk11-ol7;latest",
@@ -172,6 +179,7 @@
         "name_outputAdminHost": "[concat(parameters('adminVMName'),variables('name_publicIPAddress'))]",
         "name_scriptFile": "setupClusterDomain.sh",
         "name_share": "wlsshare",
+        "const_requiredPortrange": ",65200-65535,5556",
         "name_storageAccount": "[concat(take(replace(parameters('guidValue'),'-',''),6),'olvm')]",
         "name_subnet": "Subnet",
         "name_virtualNetwork": "[concat(parameters('wlsDomainName'),'_VNET')]",
@@ -214,7 +222,7 @@
                             "priority": 320,
                             "direction": "Inbound",
                             // TCP ports 65200-65535 for the v2 NSGs SKU
-                            "destinationPortRanges": [ "65200-65535", "5556" ]
+                            "destinationPortRanges": "[split(concat(parameters('portsToExpose'),variables('const_requiredPortrange')), ',')]"
                         }
                     },
                     {
