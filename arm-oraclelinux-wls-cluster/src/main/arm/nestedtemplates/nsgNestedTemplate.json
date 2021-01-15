@@ -8,11 +8,11 @@
 				"description": "Network Security Group name"
 			}
 		},
-		"deny_public_access_for_admin_server": {
+		"denyPublicAccessForAdminServer": {
 			"type": "bool",
 			"defaultValue": false
 		},
-		"deny_public_access_for_managed_server": {
+		"denyPublicAccessForManagedServer": {
 			"type": "bool",
 			"defaultValue": false
 		}
@@ -27,7 +27,7 @@
 		{
 			"type": "Microsoft.Network/networkSecurityGroups/securityRules",
 			"name": "[concat(parameters('name_networkSecurityGroup'),'/','WebLogicAdminPortsAllowed')]",
-			"condition": "[not(parameters('deny_public_access_for_admin_server'))]",
+			"condition": "[not(parameters('denyPublicAccessForAdminServer'))]",
 			"apiVersion": "${azure.apiVersion}",
 			"properties": {
 				"protocol": "TCP",
@@ -46,7 +46,7 @@
 		{
 			"type": "Microsoft.Network/networkSecurityGroups/securityRules",
 			"name": "[concat(parameters('name_networkSecurityGroup'),'/','WebLogicAdminPortsDenied')]",
-			"condition": "[parameters('deny_public_access_for_admin_server')]",
+			"condition": "[parameters('denyPublicAccessForAdminServer')]",
 			"apiVersion": "${azure.apiVersion}",
 			"properties": {
 				"protocol": "*",
@@ -65,7 +65,7 @@
 		{
 			"type": "Microsoft.Network/networkSecurityGroups/securityRules",
 			"name": "[concat(parameters('name_networkSecurityGroup'),'/','WebLogiManagedPortsAllowed')]",
-			"condition": "[not(parameters('deny_public_access_for_managed_server'))]",
+			"condition": "[not(parameters('denyPublicAccessForManagedServer'))]",
 			"apiVersion": "${azure.apiVersion}",
 			"properties": {
 				"protocol": "*",
@@ -83,7 +83,7 @@
 		{
 			"type": "Microsoft.Network/networkSecurityGroups/securityRules",
 			"name": "[concat(parameters('name_networkSecurityGroup'),'/','WebLogiManagedPortsDenied')]",
-			"condition": "[parameters('deny_public_access_for_managed_server')]",
+			"condition": "[parameters('denyPublicAccessForManagedServer')]",
 			"apiVersion": "${azure.apiVersion}",
 			"properties": {
 				"protocol": "*",

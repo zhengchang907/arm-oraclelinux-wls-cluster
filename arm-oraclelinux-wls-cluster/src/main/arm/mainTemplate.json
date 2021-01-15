@@ -75,11 +75,11 @@
                 "description": "Userid of Database"
             }
         },
-        "deny_public_access_for_admin_server": {
+        "denyPublicAccessForAdminServer": {
             "type": "bool",
             "defaultValue": false
         },
-        "deny_public_access_for_managed_server": {
+        "denyPublicAccessForManagedServer": {
             "type": "bool",
             "defaultValue": false
         },
@@ -448,11 +448,11 @@
                     "name_networkSecurityGroup": {
                         "value": "[concat(parameters('dnsLabelPrefix'), '-nsg')]"
                     },
-                    "deny_public_access_for_admin_server": {
-                        "value": "[parameters('deny_public_access_for_admin_server')]"
+                    "denyPublicAccessForAdminServer": {
+                        "value": "[parameters('denyPublicAccessForAdminServer')]"
                     },
-                    "deny_public_access_for_managed_server": {
-                        "value": "[parameters('deny_public_access_for_managed_server')]"
+                    "denyPublicAccessForManagedServer": {
+                        "value": "[parameters('denyPublicAccessForManagedServer')]"
                     }
                 }
             },
