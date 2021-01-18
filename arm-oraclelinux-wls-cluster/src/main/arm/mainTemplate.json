@@ -75,11 +75,11 @@
                 "description": "Userid of Database"
             }
         },
-        "denyPublicAccessForAdminServer": {
+        "denyPublicTrafficForAdminServer": {
             "type": "bool",
             "defaultValue": false
         },
-        "denyPublicAccessForManagedServer": {
+        "denyPublicTrafficForManagedServer": {
             "type": "bool",
             "defaultValue": false
         },
