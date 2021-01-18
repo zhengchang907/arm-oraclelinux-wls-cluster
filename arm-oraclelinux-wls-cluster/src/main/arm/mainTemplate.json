@@ -458,11 +458,11 @@
                     "networkSecurityGroupName": {
                         "value": "[concat(parameters('dnsLabelPrefix'), '-nsg')]"
                     },
-                    "denyPublicAccessForAdminServer": {
-                        "value": "[parameters('denyPublicAccessForAdminServer')]"
+                    "denyPublicTrafficForAdminServer": {
+                        "value": "[parameters('denyPublicTrafficForAdminServer')]"
                     },
-                    "denyPublicAccessForManagedServer": {
-                        "value": "[parameters('denyPublicAccessForManagedServer')]"
+                    "denyPublicTrafficForManagedServer": {
+                        "value": "[parameters('denyPublicTrafficForManagedServer')]"
                     },
                     "enableAppGateway": {
                         "value": "[parameters('enableAppGateway')]"
