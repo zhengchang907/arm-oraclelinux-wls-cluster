@@ -93,18 +93,18 @@
             }
         },
         "skuUrnVersion": {
-           "type": "string",
-           "defaultValue": "owls-141100-jdk11-ol76;Oracle:weblogic-141100-jdk11-ol76:owls-141100-jdk11-ol7;latest",
-           "allowedValues": [
-              "owls-122130-jdk8-ol73;Oracle:weblogic-122130-jdk8-ol73:owls-122130-jdk8-ol7;latest",
-              "owls-122130-jdk8-ol74;Oracle:weblogic-122130-jdk8-ol74:owls-122130-jdk8-ol7;latest",
-              "owls-122140-jdk8-ol76;Oracle:weblogic-122140-jdk8-ol76:owls-122140-jdk8-ol7;latest",
-              "owls-141100-jdk8-ol76;Oracle:weblogic-141100-jdk8-ol76:owls-141100-jdk8-ol7;latest",
-              "owls-141100-jdk11-ol76;Oracle:weblogic-141100-jdk11-ol76:owls-141100-jdk11-ol7;latest"
-           ],
-           "metadata": {
-              "description": "The Oracle Linux image with Weblogic and Java preinstalled. Semicolon separated string of Sku, URN, and Version"
-           }
+            "type": "string",
+            "defaultValue": "owls-141100-jdk11-ol76;Oracle:weblogic-141100-jdk11-ol76:owls-141100-jdk11-ol7;latest",
+            "allowedValues": [
+                "owls-122130-jdk8-ol73;Oracle:weblogic-122130-jdk8-ol73:owls-122130-jdk8-ol7;latest",
+                "owls-122130-jdk8-ol74;Oracle:weblogic-122130-jdk8-ol74:owls-122130-jdk8-ol7;latest",
+                "owls-122140-jdk8-ol76;Oracle:weblogic-122140-jdk8-ol76:owls-122140-jdk8-ol7;latest",
+                "owls-141100-jdk8-ol76;Oracle:weblogic-141100-jdk8-ol76:owls-141100-jdk8-ol7;latest",
+                "owls-141100-jdk11-ol76;Oracle:weblogic-141100-jdk11-ol76:owls-141100-jdk11-ol7;latest"
+            ],
+            "metadata": {
+                "description": "The Oracle Linux image with Weblogic and Java preinstalled. Semicolon separated string of Sku, URN, and Version"
+            }
         },
         "usePreviewImage": {
             "type": "bool",
@@ -138,6 +138,12 @@
             "metadata": {
                 "description": "Password for your Weblogic domain name"
             }
+        },
+        "networkSecurityGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Network Security Group"
+            }
         }
     },
     "variables": {
@@ -160,7 +166,6 @@
         "const_managedVMPrefix": "[concat(parameters('managedServerPrefix'),'VM')]",
         "const_mountPointPath": "[concat('/mnt/', variables('name_share'))]",
         "const_publicIPAddressType": "Dynamic",
-        "const_requiredPortrange": ",65200-65535,5556",
         "const_storageAccountType": "Standard_LRS",
         "const_subnetPrefix": "10.0.0.0/24",
         "const_vmSize": "[parameters('vmSizeSelect')]",
@@ -169,17 +174,17 @@
         "name_availabilitySet": "WLSCluster-AvailabilitySet",
         "name_linuxImageOfferSKU": "[first(split(parameters('skuUrnVersion'), ';'))]",
         "name_linuxImageVersion": "[last(split(parameters('skuUrnVersion'),';'))]",
-        "name_networkSecurityGroup": "[concat(parameters('dnsLabelPrefix'), '-nsg')]",
         "name_nic": "_NIC",
         "name_publicIPAddress": "_PublicIP",
         "name_outputAdminHost": "[concat(parameters('adminVMName'),variables('name_publicIPAddress'))]",
         "name_scriptFile": "setupClusterDomain.sh",
         "name_share": "wlsshare",
+        "const_requiredPortrange": ",65200-65535,5556",
         "name_storageAccount": "[concat(take(replace(parameters('guidValue'),'-',''),6),'olvm')]",
         "name_subnet": "Subnet",
         "name_virtualNetwork": "[concat(parameters('wlsDomainName'),'_VNET')]",
         "ref_fileService": "[resourceId('Microsoft.Storage/storageAccounts/fileServices', variables('name_storageAccount'), 'default')]",
-        "ref_networkSecurityGroup": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('name_networkSecurityGroup'))]",
+        "ref_networkSecurityGroup": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName'))]",
         "ref_storage": "[resourceId('Microsoft.Storage/storageAccounts', variables('name_storageAccount'))]",
         "ref_subnet": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('name_virtualNetwork'), variables('name_subnet'))]"
 
@@ -202,7 +207,7 @@
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "${azure.apiVersion}",
-            "name": "[variables('name_networkSecurityGroup')]",
+            "name": "[parameters('networkSecurityGroupName')]",
             "location": "[parameters('location')]",
             "properties": {
                 "securityRules": [
@@ -216,10 +221,12 @@
                             "access": "Allow",
                             "priority": 320,
                             "direction": "Inbound",
+                            // TCP ports 65200-65535 for the v2 NSGs SKU
                             "destinationPortRanges": "[split(concat(parameters('portsToExpose'),variables('const_requiredPortrange')), ',')]"
                         }
                     },
                     {
+                        // Node manager port
                         "name": "WebLogicNMPort",
                         "properties": {
                             "protocol": "TCP",
@@ -233,6 +240,7 @@
                         }
                     },
                     {
+                        // Oracle Directory Services Manager (ODSM) port
                         "name": "WebLogicAdminChannelPort",
                         "properties": {
                             "protocol": "TCP",
@@ -242,7 +250,25 @@
                             "access": "Deny",
                             "priority": 202,
                             "direction": "Inbound",
+                            // t3 channel
                             "destinationPortRanges": [ "7005" ]
+                        }
+                    },
+
+                    {
+                        "name": "WebLogiManagedChannelPortsDenied",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 230,
+                            "direction": "Inbound",
+                            "destinationPortRanges": [
+                                // load balancer
+                                "8501"
+                            ],
+                            "sourceAddressPrefix": "Internet"
                         }
                     }
                 ]
@@ -261,7 +287,7 @@
                 "supportsHttpsTrafficOnly": false
             },
             "dependsOn": [
-                "[variables('name_networkSecurityGroup')]"
+                "[parameters('networkSecurityGroupName')]"
             ]
         },
         {
