@@ -35,8 +35,15 @@
 		"appGatewaySSLCertificatePassword": {
 			"type": "string"
 		},
+		"customDomainName": {
+			"defaultValue": "application.contoso.xyz",
+			"type": "string",
+			"metadata": {
+				"description": "Custom DNS Zone domain name for the Application Gateway"
+			}
+		},
 		"dnsNameforApplicationGateway": {
-			"defaultValue": "wlsgw",
+			"defaultValue": "[format('{0}{1}-{2}-{3}', 'wlsgw',take(replace(parameters('guidValue'),'-',''),6), toLower(resourceGroup().name),toLower(parameters('wlsDomainName')))]",
 			"type": "string",
 			"metadata": {
 				"description": "DNS for ApplicationGateway"
@@ -75,6 +82,13 @@
 				"description": "Number of VMs to deploy, limit 5 since this sample is using a single storage account"
 			}
 		},
+		"overrideHostName": {
+			"defaultValue": false,
+			"type": "bool",
+			"metadata": {
+				"description": "If true, will override the host name with dnszoneSubDomain."
+			}
+		},
 		"wlsDomainName": {
 			"defaultValue": "wlsd",
 			"type": "string",
@@ -104,7 +118,6 @@
 		"const_managedVMPrefix": "[concat(parameters('managedServerPrefix'),'VM')]",
 		"const_wlsAdminPort": "7001",
 		"const_wlsHome": "/u01/app/wls/install/oracle/middleware/oracle_home",
-		"name_dnsNameforApplicationGateway": "[concat(parameters('dnsNameforApplicationGateway'), take(replace(parameters('guidValue'),'-',''),6))]",
 		"name_appGateway": "myAppGateway",
 		"name_appGatewayCertificate": "appGwSslCertificate",
 		"name_appGatewaySubnet": "appGatewaySubnet",
@@ -118,6 +131,31 @@
 		"name_probe": "HTTPhealthProbe",
 		"name_scriptAGWConfiguration": "setupApplicationGateway.sh",
 		"name_virtualNetwork": "[concat(parameters('wlsDomainName'),'_VNET')]",
+		"obj_HTTPSettingsDefault": {
+			"provisioningState": "Succeeded",
+			"port": "[int(variables('const_backendPort'))]",
+			"protocol": "Http",
+			"cookieBasedAffinity": "Enabled",
+			"pickHostNameFromBackendAddress": true,
+			"affinityCookieName": "ApplicationGatewayAffinity",
+			"requestTimeout": 20,
+			"probe": {
+				"id": "[variables('ref_backendProbe')]"
+			}
+		},
+		"obj_HTTPSettingsCustomDNS": {
+			"provisioningState": "Succeeded",
+			"port": "[int(variables('const_backendPort'))]",
+			"protocol": "Http",
+			"cookieBasedAffinity": "Enabled",
+			"hostName": "[parameters('customDomainName')]",
+			"pickHostNameFromBackendAddress": false,
+			"affinityCookieName": "ApplicationGatewayAffinity",
+			"requestTimeout": 20,
+			"probe": {
+				"id": "[variables('ref_backendProbe')]"
+			}
+		},
 		"ref_appGatewayPublicIP": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('gatewayPublicIPAddressName'))]",
 		"ref_appGatewaySubnet": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('name_virtualNetwork'), variables('name_appGatewaySubnet'))]",
 		"ref_backendAddressPool": "[resourceId('Microsoft.Network/applicationGateways/backendAddressPools', variables('name_appGateway'),variables('name_backendAddressPool'))]",
@@ -156,7 +194,7 @@
 			"properties": {
 				"publicIPAllocationMethod": "Static",
 				"dnsSettings": {
-					"domainNameLabel": "[concat(variables('name_dnsNameforApplicationGateway'),'-',toLower(resourceGroup().name),'-',toLower(parameters('wlsDomainName')))]"
+					"domainNameLabel": "[parameters('dnsNameforApplicationGateway')]"
 				}
 			}
 		},
@@ -240,18 +278,8 @@
 				"backendHttpSettingsCollection": [
 					{
 						"name": "myHTTPSetting",
-						"properties": {
-							"provisioningState": "Succeeded",
-							"port": "[int(variables('const_backendPort'))]",
-							"protocol": "Http",
-							"cookieBasedAffinity": "Enabled",
-							"pickHostNameFromBackendAddress": true,
-							"affinityCookieName": "ApplicationGatewayAffinity",
-							"requestTimeout": 20,
-							"probe": {
-								"id": "[variables('ref_backendProbe')]"
-							}
-						},
+						// Solve the URL redirection issue
+						"properties": "[if(parameters('overrideHostName'), variables('obj_HTTPSettingsCustomDNS'),variables('obj_HTTPSettingsDefault'))]",
 						"type": "Microsoft.Network/applicationGateways/backendHttpSettingsCollection"
 					}
 				],
@@ -369,7 +397,7 @@
 					]
 				},
 				"protectedSettings": {
-					"commandToExecute": "[concat('sh',' ',variables('name_scriptAGWConfiguration'),' ', variables('const_adminServerName'),' ',parameters('wlsUserName'),' ',parameters('wlsPassword'),' ',parameters('adminVMName'),' ',variables('const_wlsAdminPort'),' ', reference(variables('ref_appGatewayPublicIP'), '${azure.apiVersion}').dnsSettings.fqdn, ' ',variables('const_wlsHome'))]"
+					"commandToExecute": "[concat('sh',' ',variables('name_scriptAGWConfiguration'),' ', variables('const_adminServerName'),' ',parameters('wlsUserName'),' ',parameters('wlsPassword'),' ',parameters('adminVMName'),' ',variables('const_wlsAdminPort'),' ', if(parameters('overrideHostName'), parameters('customDomainName'), reference(variables('ref_appGatewayPublicIP'), '${azure.apiVersion}').dnsSettings.fqdn), ' ',variables('const_wlsHome'))]"
 				}
 			}
 		},
@@ -392,9 +420,17 @@
 		}
 	],
 	"outputs": {
+		"appGatewayAlias": {
+			"type": "string",
+			"value": "[reference(variables('ref_appGatewayPublicIP'), '${azure.apiVersion}').dnsSettings.fqdn]"
+		},
 		"appGatewayURL": {
 			"type": "string",
 			"value": "[concat('http://',reference(variables('ref_appGatewayPublicIP'), '${azure.apiVersion}').dnsSettings.fqdn)]"
+		},
+		"appGatewaySecuredURL": {
+			"type": "string",
+			"value": "[concat('https://',reference(variables('ref_appGatewayPublicIP'), '${azure.apiVersion}').dnsSettings.fqdn)]"
 		}
 	}
 }
