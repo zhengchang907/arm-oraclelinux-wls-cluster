@@ -87,6 +87,7 @@ jobs:
           echo "debug: edburns: grep pid $current/${{ env.repoName }}-dev/${{ env.repoName }}/src/main/arm/nestedtemplates/clusterTemplate.json"
           grep pid $current/${{ env.repoName }}-dev/${{ env.repoName }}/src/main/arm/nestedtemplates/clusterTemplate.json
           echo "debug: edburns: pwd $PWD"
+          echo "https://${ gitToken }@github.com/${ userName }/${{ env.repoName }}.git"
           pwd
           git status
           git commit -a -m "hard code pids"
