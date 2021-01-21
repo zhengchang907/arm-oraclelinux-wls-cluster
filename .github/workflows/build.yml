@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - develop
+      - testgitaction
   schedule:
     - cron: "0 7 * * *"
   repository_dispatch:
