@@ -381,6 +381,13 @@
                 "description": "Bool value, if it's set to true, will deploy with preview weblogic image."
             }
         },
+        "useSystemAssignedManagedIdentity": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Bool value, if it's set to true, a system assigned managed identity will to be created for the VM(s)"
+            }
+        },
         "vmSizeSelect": {
             "defaultValue": "Standard_A3",
             "type": "string",
@@ -539,6 +546,9 @@
                     },
                     "usePreviewImage": {
                         "value": "[parameters('usePreviewImage')]"
+                    },
+                    "useSystemAssignedManagedIdentity": {
+                        "value": "[parameters('useSystemAssignedManagedIdentity')]"
                     },
                     "vmSizeSelect": {
                         "value": "[parameters('vmSizeSelect')]"
