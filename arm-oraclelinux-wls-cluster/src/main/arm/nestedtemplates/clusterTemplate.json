@@ -113,6 +113,13 @@
                 "description": "Bool value, if it's set to true, will deploy with preview weblogic image."
             }
         },
+        "useSystemAssignedManagedIdentity": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Bool value, if it's set to true, a system assigned managed identity will to be created for the VM(s)"
+            }
+        },
         "vmSizeSelect": {
             "type": "string",
             "defaultValue": "Standard_A3",
@@ -423,6 +430,7 @@
                 "nicLoop",
                 "[resourceId('Microsoft.Compute/availabilitySets/', variables('name_availabilitySet'))]"
             ],
+            "identity": "[if(parameters('useSystemAssignedManagedIdentity'), json('{\"type\":\"SystemAssigned\"}'), null())]",
             "properties": {
                 "availabilitySet": {
                     "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('name_availabilitySet'))]"
