@@ -424,6 +424,9 @@
                 "[resourceId('Microsoft.Compute/availabilitySets/', variables('name_availabilitySet'))]"
             ],
             "properties": {
+                "identity": {
+                    "type": "SystemAssigned"
+                },
                 "availabilitySet": {
                     "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('name_availabilitySet'))]"
                 },
