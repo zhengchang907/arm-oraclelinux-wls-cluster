@@ -121,6 +121,14 @@
                 "description": "Userid of Database"
             }
         },
+        "denyPublicTrafficForAdminServer": {
+            "type": "bool",
+            "defaultValue": false
+        },
+        "denyPublicTrafficForManagedServer": {
+            "type": "bool",
+            "defaultValue": false
+        },
         "dsConnectionURL": {
             "defaultValue": "",
             "type": "string",
@@ -464,7 +472,8 @@
         "name_dnszonesLinkedTemplateName": "dnszonesTemplate.json",
         "name_domainLabelforApplicationGateway": "[concat(variables('name_dnsNameforApplicationGateway'),'-',toLower(resourceGroup().name),'-',toLower(parameters('wlsDomainName')))]",
         "name_elkLinkedTemplateName": "elkNestedTemplate.json",
-        "name_keyVaultLinkedTemplateName": "_keyvaultAdapterTemplate.json"
+        "name_keyVaultLinkedTemplateName": "_keyvaultAdapterTemplate.json",
+        "name_nsgLinkedTemplateName": "nsgNestedTemplate.json"
     },
     "resources": [
         {
@@ -594,6 +603,35 @@
         {
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "${azure.apiVersion}",
+            "name": "networkSecurityLinkedTemplate",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[uri(parameters('_artifactsLocation'), concat('nestedtemplates/', variables('name_nsgLinkedTemplateName')))]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "networkSecurityGroupName": {
+                        "value": "[concat(parameters('dnsLabelPrefix'), '-nsg')]"
+                    },
+                    "denyPublicTrafficForAdminServer": {
+                        "value": "[parameters('denyPublicTrafficForAdminServer')]"
+                    },
+                    "denyPublicTrafficForManagedServer": {
+                        "value": "[parameters('denyPublicTrafficForManagedServer')]"
+                    },
+                    "enableAppGateway": {
+                        "value": "[parameters('enableAppGateway')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'clusterLinkedTemplate')]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "${azure.apiVersion}",
             "name": "keyVaultLinkedAppGatewayTemplate",
             "condition": "[parameters('enableAppGateway')]",
             "properties": {
@@ -654,7 +692,7 @@
                     "numberOfInstances": {
                         "value": "[parameters('numberOfInstances')]"
                     },
-                    "overrideHostName":{
+                    "overrideHostName": {
                         "value": "[parameters('enableDNSConfiguration')]"
                     },
                     "wlsDomainName": {

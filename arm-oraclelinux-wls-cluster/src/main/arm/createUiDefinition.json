@@ -230,6 +230,27 @@
                         "visible": "[bool(basics('basicsOptional').basicsOptionalAcceptDefaults)]"
                     },
                     {
+                        "name": "denyPublicTrafficForAdminServer",
+                        "type": "Microsoft.Common.OptionsGroup",
+                        "label": "Deny public traffic for admin server?",
+                        "defaultValue": "No",
+                        "toolTip": "Select 'Yes' to deny public traffic for admin server. Configuration here for port 7001 and 7002 has a higher priority than above.",
+                        "constraints": {
+                            "allowedValues": [
+                                {
+                                    "label": "No",
+                                    "value": false
+                                },
+                                {
+                                    "label": "Yes",
+                                    "value": true
+                                }
+                            ],
+                            "required": true
+                        },
+                        "visible": "[bool(basics('basicsOptional').basicsOptionalAcceptDefaults)]"
+                    },
+                    {
                         "name": "About",
                         "type": "Microsoft.Common.InfoBox",
                         "options": {
@@ -315,6 +336,27 @@
                                 "uri": "https://aka.ms/arm-oraclelinux-wls-cluster-app-gateway-key-vault"
                             }
                         }
+                    },
+                    {
+                        "name": "denyPublicTrafficForManagedServer",
+                        "type": "Microsoft.Common.OptionsGroup",
+                        "label": "Deny public traffic for managed server?",
+                        "defaultValue": "Yes",
+                        "toolTip": "Select 'Yes' to deny public traffic for managed server. Configuration here for port 8001 has a higher priority than the 'Ports and port ranges to expose' in basic blade.",
+                        "constraints": {
+                            "allowedValues": [
+                                {
+                                    "label": "No",
+                                    "value": false
+                                },
+                                {
+                                    "label": "Yes",
+                                    "value": true
+                                }
+                            ],
+                            "required": true
+                        },
+                        "visible": "[steps('section_appGateway').enableAppGateway]"
                     },
                     {
                         "name": "certificateOption",
@@ -1217,6 +1259,8 @@
             "authenticationType": "[basics('basicsRequired').adminPasswordOrKey.authenticationType]",
             "enableDB": "[bool(steps('section_database').enableDB)]",
             "databaseType": "[steps('section_database').databaseConnectionInfo.databaseType]",
+            "denyPublicTrafficForAdminServer": "[basics('basicsOptional').denyPublicTrafficForAdminServer]",
+            "denyPublicTrafficForManagedServer": "[steps('section_appGateway').denyPublicTrafficForManagedServer]",
             "dnsLabelPrefix": "[basics('basicsOptional').dnsLabelPrefix]",
             "dnszoneIdentity": "[if(greater(length(steps('section_dnsConfiguration').customDNSSettings.dnsIdentity.userAssignedIdentities),0),steps('section_dnsConfiguration').customDNSSettings.dnsIdentity, steps('section_appGateway').gatewayIdentity)]",
             "dnszoneName": "[steps('section_dnsConfiguration').customDNSSettings.dnszoneName]",
