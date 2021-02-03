@@ -14,6 +14,7 @@ wlspassword=${10}
 gitUserName=${11}
 testbranchName=${12}
 managedServerPrefix=${13}
+guidValue=${14}
 
 numberOfInstances=$((numberOfInstances-1))
 
@@ -30,6 +31,9 @@ cat <<EOF > ${parametersPath}
       },
       "elasticsearchUserName": {
         "value": "${elasticsearchUserName}"
+      },
+      "guidValue": {
+        "value": "${guidValue}"
       },
       "location": {
         "value": "${location}"
