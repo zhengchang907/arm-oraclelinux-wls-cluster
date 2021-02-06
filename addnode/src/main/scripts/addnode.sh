@@ -9,7 +9,7 @@ function echo_stderr ()
 #Function to display usage message
 function usage()
 {
-  echo_stderr "./addnode.sh <wlsDomainName> <wlsUserName> <wlsPassword> <managedServerPrefix> <serverIndex> <wlsAdminURL> <oracleHome> <wlsDomainPath> <storageAccountName> <storageAccountKey> <mountpointPath> <wlsADSSLCer> <wlsLDAPPublicIP> <adServerHost> <appGWHostName> <enableELK> <elasticURI> <elasticUserName> <elasticPassword> <logsToIntegrate> <logIndex> <enableCoherence>"
+  echo_stderr "./addnode.sh <wlsDomainName> <wlsUserName> <wlsPassword> <managedServerPrefix> <serverIndex> <wlsAdminURL> <oracleHome> <wlsDomainPath> <storageAccountName> <storageAccountKey> <mountpointPath> <wlsADSSLCer> <wlsLDAPPublicIP> <adServerHost> <appGWHostName> <enableELK> <elasticURI> <elasticUserName> <elasticPassword> <logsToIntegrate> <logIndex> <enableCoherence> <isCustomSSLenabled> <customIdentityKeyStoreBase64String> <customIdentityKeyStorePassPhrase> <customIdentityKeyStoreType> <customTrustKeyStoreBase64String> <customTrustKeyStorePassPhrase> <customTrustKeyStoreType> <privateKeyAlias> <privateKeyPassPhrase>"
 }
 
 function installUtilities()
@@ -139,6 +139,17 @@ function validateInput()
     then
         echo_stderr "enableCoherence is required. "
     fi
+
+    if [ ! -z "$isCustomSSLEnabled" == "true" ];
+    then
+        if [[ -z "$customIdentityKeyStoreBase64String" || -z "$customIdentityKeyStorePassPhrase"  || -z "$customIdentityKeyStoreType" ||
+              -z "$customTrustKeyStoreBase64String" || -z "$customTrustKeyStorePassPhrase"  || -z "$customTrustKeyStoreType" ||
+              -z "$privateKeyAlias" || -z "$privateKeyPassPhrase" ]]
+        then
+            echo_stderr "customIdentityKeyStoreBase64String, customIdentityKeyStorePassPhrase, customIdentityKeyStoreType, customTrustKeyStoreBase64String, customTrustKeyStorePassPhrase, customTrustKeyStoreType, privateKeyAlias and privateKeyPassPhrase are required. "
+            exit 1
+        fi
+    fi
 }
 
 #Function to cleanup all temporary files
@@ -212,6 +223,9 @@ function create_ms_server_model()
     echo "Creating managed server $wlsServerName model"
 
     cat <<EOF >$wlsDomainPath/add-server.py
+
+isCustomSSLEnabled='${isCustomSSLEnabled}'
+
 connect('$wlsUserName','$wlsPassword','t3://$wlsAdminURL')
 edit("$wlsServerName")
 startEdit()
@@ -223,6 +237,25 @@ cmo.setCluster(getMBean('/Clusters/$wlsClusterName'))
 cmo.setListenAddress('$nmHost')
 cmo.setListenPort(int($wlsManagedPort))
 cmo.setListenPortEnabled(true)
+
+if isCustomSSLEnabled == 'true' :
+    cmo.setKeyStores('CustomIdentityAndCustomTrust')
+    cmo.setCustomIdentityKeyStoreFileName('$customSSLIdentityKeyStoreFile')
+    cmo.setCustomIdentityKeyStoreType('$customIdentityKeyStoreType')
+    set('CustomIdentityKeyStorePassPhrase', '$customIdentityKeyStorePassPhrase')
+    cmo.setCustomTrustKeyStoreFileName('$customSSLTrustKeyStoreFile')
+    cmo.setCustomTrustKeyStoreType('$customTrustKeyStoreType')
+    set('CustomTrustKeyStorePassPhrase', '$customTrustKeyStorePassPhrase')
+
+    cd('/Servers/$wlsServerName/SSL/$wlsServerName')
+    cmo.setServerPrivateKeyAlias('$privateKeyAlias')
+    set('ServerPrivateKeyPassPhrase', '$privateKeyPassPhrase')
+    cmo.setHostnameVerificationIgnored(true)
+
+cd('/Servers/$wlsServerName/ServerStart/$wlsServerName')
+arguments = '-Dweblogic.Name=$wlsServerName  -Dweblogic.security.SSL.ignoreHostnameVerification=true'
+cmo.setArguments(arguments)
+
 EOF
 
     if [ "$appGWHostName" != "null" ]; then
@@ -265,10 +298,12 @@ EOF
     java8Status=$?
     if [ "${java8Status}" == "0" ]; then
     cat <<EOF >>$wlsDomainPath/add-server.py
+cd('/Servers/$wlsServerName//ServerStart/$wlsServerName')
 arguments = '-Dweblogic.Name=$wlsServerName  -Dweblogic.management.server=http://$wlsAdminURL -Djdk.tls.client.protocols=TLSv1.2'
 EOF
 else
     cat <<EOF >>$wlsDomainPath/add-server.py
+cd('/Servers/$wlsServerName//ServerStart/$wlsServerName')
 arguments = '-Dweblogic.Name=$wlsServerName  -Dweblogic.management.server=http://$wlsAdminURL'
 EOF
     fi
@@ -343,6 +378,16 @@ function create_nodemanager_service()
    echo "Warning : Failed in setting option CrashRecoveryEnabled=true. Continuing without the option."
    mv $wlsDomainPath/nodemanager/nodemanager.properties.bak $wlsDomainPath/$wlsDomainName/nodemanager/nodemanager.properties
  fi
+
+if [ "${isCustomSSLEnabled}" == "true" ];
+then
+    echo "KeyStores=CustomIdentityAndCustomTrust" >> $wlsDomainPath/$wlsDomainName/nodemanager/nodemanager.properties
+    echo "CustomIdentityKeyStoreFileName=${customSSLIdentityKeyStoreFile}" >> $wlsDomainPath/$wlsDomainName/nodemanager/nodemanager.properties
+    echo "CustomIdentityAlias=${privateKeyAlias}" >> $wlsDomainPath/$wlsDomainName/nodemanager/nodemanager.properties
+    echo "CustomIdentityPrivateKeyPassPhrase=${customIdentityKeyStorePassPhrase}" >> $wlsDomainPath/$wlsDomainName/nodemanager/nodemanager.properties
+    echo "CustomTrustKeyStoreFileName=${customSSLTrustKeyStoreFile}" >> $wlsDomainPath/$wlsDomainName/nodemanager/nodemanager.properties
+fi
+
  sudo chown -R $username:$groupname $wlsDomainPath/$wlsDomainName/nodemanager/nodemanager.properties*
  echo "Creating NodeManager service"
  cat <<EOF >/etc/systemd/system/wls_nodemanager.service
@@ -459,6 +504,7 @@ function updateNetworkRules()
     if [ ${tag} == 'admin' ]; then
         echo "update network rules for admin server"
         sudo firewall-cmd --zone=public --add-port=$wlsAdminPort/tcp
+        sudo firewall-cmd --zone=public --add-port=$wlsAdminChannelPort/tcp
         sudo firewall-cmd --zone=public --add-port=$wlsSSLAdminPort/tcp
         sudo firewall-cmd --zone=public --add-port=$wlsManagedPort/tcp
         sudo firewall-cmd --zone=public --add-port=$nmPort/tcp
@@ -575,6 +621,47 @@ function importAADCertificate()
     sudo ${JAVA_HOME}/bin/keytool -noprompt -import -alias aadtrust -file ${addsCertificate} -keystore ${java_cacerts_path} -storepass changeit
 }
 
+function importAADCertificateIntoWLSCustomTrustKeyStore()
+{
+    if [ "${isCustomSSLEnabled,,}" == "true" ];
+    then
+        # set java home
+        . $oracleHome/oracle_common/common/bin/setWlstEnv.sh
+
+        # For SSL enabled causes AAD failure #225
+        # ISSUE: https://github.com/wls-eng/arm-oraclelinux-wls/issues/225
+
+        echo "Importing AAD Certificate into WLS Custom Trust Key Store: "
+
+        sudo ${JAVA_HOME}/bin/keytool -noprompt -import -trustcacerts -keystore {KEYSTORE_PATH}/trust.keystore -storepass ${customTrustKeyStorePassPhrase} -alias aadtrust -file ${addsCertificate} -storetype ${customTrustKeyStoreType}
+    else
+        echo "customSSL not enabled. Not required to configure AAD for WebLogic Custom SSL"
+    fi
+}
+
+function parseAndSaveCustomSSLKeyStoreData()
+{
+    echo "create key stores for custom ssl settings"
+
+    mkdir -p ${KEYSTORE_PATH}
+    touch ${KEYSTORE_PATH}/identityKeyStoreCerBase64String.txt
+
+    echo "$customIdentityKeyStoreBase64String" > ${KEYSTORE_PATH}/identityKeyStoreCerBase64String.txt
+    cat ${KEYSTORE_PATH}/identityKeyStoreCerBase64String.txt | base64 -d > ${KEYSTORE_PATH}/identity.keystore
+    export customSSLIdentityKeyStoreFile=${KEYSTORE_PATH}/identity.keystore
+
+    rm -rf ${KEYSTORE_PATH}/identityKeyStoreCerBase64String.txt
+
+    mkdir -p ${KEYSTORE_PATH}
+    touch ${KEYSTORE_PATH}/trustKeyStoreCerBase64String.txt
+
+    echo "$customTrustKeyStoreBase64String" > ${KEYSTORE_PATH}/trustKeyStoreCerBase64String.txt
+    cat ${KEYSTORE_PATH}/trustKeyStoreCerBase64String.txt | base64 -d > ${KEYSTORE_PATH}/trust.keystore
+    export customSSLTrustKeyStoreFile=${KEYSTORE_PATH}/trust.keystore
+
+    rm -rf ${KEYSTORE_PATH}/trustKeyStoreCerBase64String.txt
+}
+
 
 #main script starts here
 
@@ -591,7 +678,7 @@ for (( i=0;i<$ELEMENTS;i++)); do
     echo "ARG[${args[${i}]}]"
 done
 
-if [ $# -ne 22 ]
+if [ $# -lt 23 ]
 then
     usage
     exit 1
@@ -620,11 +707,24 @@ export logsToIntegrate=${20}
 export logIndex=${21}
 export enableCoherence=${22}
 
+export isCustomSSLEnabled="${23}"
+isCustomSSLEnabled="${isCustomSSLEnabled,,}"
+
+export customIdentityKeyStoreBase64String="${24}"
+export customIdentityKeyStorePassPhrase="${25}"
+export customIdentityKeyStoreType="${26}"
+export customTrustKeyStoreBase64String="${27}"
+export customTrustKeyStorePassPhrase="${28}"
+export customTrustKeyStoreType="${29}"
+export privateKeyAlias="${30}"
+export privateKeyPassPhrase="${31}"
+
 export coherenceListenPort=7574
 export coherenceLocalport=42000
 export coherenceLocalportAdjust=42200
 export enableAAD="false"
 export wlsAdminPort=7001
+export wlsAdminChannelPort=7005
 export wlsManagedPort=8001
 export wlsClusterName="cluster1"
 export nmHost=`hostname`
@@ -636,6 +736,8 @@ export WEBLOGIC_DEPLOY_TOOL=https://github.com/oracle/weblogic-deploy-tooling/re
 export username="oracle"
 export groupname="oracle"
 
+export KEYSTORE_PATH="$wlsDomainPath/$wlsDomainName/keystores"
+
 chmod ugo+x ${SCRIPT_PWD}/elkIntegration.sh
 
 validateInput
@@ -643,10 +745,16 @@ cleanup
 installUtilities
 mountFileShare
 updateNetworkRules "managed"
+
+if [ "$isCustomSSLEnabled" == "true" ];then
+    parseAndSaveCustomSSLKeyStoreData
+fi
+
 if [ "$enableAAD" == "true" ];then
     mapLDAPHostWithPublicIP
     parseLDAPCertificate
     importAADCertificate
+    importAADCertificateIntoWLSCustomTrustKeyStore
 fi
 
 create_managedSetup
