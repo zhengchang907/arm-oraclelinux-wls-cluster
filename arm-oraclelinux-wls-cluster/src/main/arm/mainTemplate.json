@@ -653,7 +653,9 @@
         "clusterTemplateRef": "[concat('cluster',if(parameters('enableCustomSSL'),'CustomSSL',''),'LinkedTemplate')]",
         "name_clusterTemplate": "clusterLinkedTemplate",
         "name_clusterCustomSSLTemplate": "clusterCustomSSLLinkedTemplate",
-        "name_sslKeyVaultLinkedTemplateName": "_keyvaultSSLConfigTemplate.json"
+        "name_sslKeyVaultLinkedTemplateName": "_keyvaultSSLConfigTemplate.json",
+        "name_keyVaultName": "[take(concat('wls-kv', parameters('utcNow'), uniqueString(resourceGroup().id, deployment().name)), 24)]"
+
     },
     "resources": [
         {
@@ -781,8 +783,8 @@
                "sku": {
                   "value": "[parameters('keyVaultSku')]"
                },
-               "utcValue": {
-                   "value": "[parameters('utcNow')]"
+               "keyVaultName": {
+                   "value": "[variables('name_keyVaultName')]"
                }
             }
          }
@@ -961,8 +963,8 @@
                     "useExistingAppGatewaySSLCertificate": {
                         "value": "[if(equals(parameters('appGatewayCertificateOption'),variables('const_appGatewaySSLCertOptionHaveCert')), true(), false())]"
                     },
-                    "utcNow": {
-                        "value": "[parameters('utcNow')]"
+                    "keyVaultName": {
+                        "value": "[variables('name_keyVaultName')]"
                     }
                 }
             }
