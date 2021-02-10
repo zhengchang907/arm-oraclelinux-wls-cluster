@@ -654,8 +654,7 @@
         "name_clusterTemplate": "clusterLinkedTemplate",
         "name_clusterCustomSSLTemplate": "clusterCustomSSLLinkedTemplate",
         "name_sslKeyVaultLinkedTemplateName": "_keyvaultSSLConfigTemplate.json",
-        "name_keyVaultName": "[take(concat('wls-kv', parameters('utcNow'), uniqueString(resourceGroup().id, deployment().name)), 24)]"
-
+        "name_keyVaultName": "[take(concat('wls-kv', uniqueString(parameters('utcNow'))), 24)]"
     },
     "resources": [
         {
@@ -927,7 +926,8 @@
             "name": "keyVaultLinkedTemplate",
             "condition": "[and(parameters('enableAppGateway'), not(equals(parameters('appGatewayCertificateOption'), variables('const_appGatewaySSLCertOptionHaveKeyVault'))))]",
             "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', variables('clusterTemplateRef'))]"
+                "[resourceId('Microsoft.Resources/deployments', variables('clusterTemplateRef'))]",
+                "[resourceId('Microsoft.Resources/deployments', 'sslKeyVaultNestedTemplate')]"
             ],
             "properties": {
                 "mode": "Incremental",
